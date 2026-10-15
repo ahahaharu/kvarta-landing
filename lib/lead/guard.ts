@@ -43,7 +43,12 @@ export function isAllowedOrigin(
   return origin !== null && allowedOrigins(env).has(origin);
 }
 
-/** На Vercel x-forwarded-for ставит сама платформа, первый адрес – клиент */
+/**
+ * Vercel перезаписывает x-forwarded-for, а не дописывает в конец: присланное
+ * клиентом значение до функции не доходит, подделать IP нельзя.
+ * https://vercel.com/docs/headers/request-headers#x-forwarded-for
+ * Запятые и x-real-ip – для локального запуска за другими прокси.
+ */
 export function getClientIp(headers: Headers): string {
   const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   return forwarded || headers.get("x-real-ip")?.trim() || "unknown";
