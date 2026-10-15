@@ -127,6 +127,13 @@
     @apply type-body bg-paper font-sans text-ink;
   }
 
+  /* Шапка липкая только с lg (h-26) – якоря не уезжают под неё */
+  [id] {
+    @media (width >= 64rem) {
+      scroll-margin-top: 6.5rem;
+    }
+  }
+
   /* На тёмных секциях переопределяем --focus-ring на светлый */
   :focus-visible {
     outline: 3px solid var(--focus-ring, var(--color-ink));
