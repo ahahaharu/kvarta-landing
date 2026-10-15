@@ -103,6 +103,8 @@ export const photos = {
 export type Photo = (typeof photos)[keyof typeof photos];
 
 export const ORDER_HREF = "#order";
+// По нему мобильная плашка понимает, что форма на экране
+export const LEAD_FORM_ID = "lead-form";
 
 export const nav = {
   logo: business.name,
@@ -223,14 +225,19 @@ export const founders = {
   photo: photos.founders,
 } as const;
 
-const subscriptionPrice = `${formatPrice(SUBSCRIPTION_PRICE)} / мес`;
+const PER_MONTH = "/ мес";
+const subscriptionPrice = `${formatPrice(SUBSCRIPTION_PRICE)} ${PER_MONTH}`;
 
 export const subscription = {
   tag: "Подписка",
   title: "Две пачки в месяц, доставка бесплатно",
-  text: `2 пачки по ${PACK} раз в месяц. Оставьте заявку: менеджер перезвонит и всё оформит. Корзина и оплата онлайн не нужны.`,
+  text: {
+    full: `2 пачки по ${PACK} раз в месяц. Оставьте заявку: менеджер перезвонит и всё оформит. Корзина и оплата онлайн не нужны.`,
+    short: "Оставьте заявку: менеджер перезвонит и всё оформит.",
+  },
   price: SUBSCRIPTION_PRICE,
   priceLabel: subscriptionPrice,
+  priceUnit: `${CURRENCY} ${PER_MONTH}`,
   priceNote: `2 пачки по ${PACK}`,
   cta: { label: "Хочу подписку", interest: "subscription" },
   photo: photos.subscription,
@@ -245,7 +252,7 @@ export const order = {
         `По Минску в пятницу. От ${formatPrice(FREE_DELIVERY_FROM)} бесплатно.`,
       ],
     },
-    { title: "Самовывоз", lines: [business.address] },
+    { title: "Самовывоз", lines: [business.address], href: business.mapUrl },
     { title: "Часы", lines: business.hours.map((h) => h.label) },
   ],
   photo: photos.shop,
