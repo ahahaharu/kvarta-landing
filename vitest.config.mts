@@ -8,7 +8,5 @@ export default defineConfig({
   test: {
     include: ["tests/unit/**/*.test.ts", "tests/integration/**/*.test.ts"],
     environment: "node",
-    // Тестов пока нет – появятся на шаге 6
-    passWithNoTests: true,
   },
 });
