@@ -278,6 +278,11 @@ export const order = {
       link: "обработку персональных данных",
       href: "/privacy",
     },
+    errors: {
+      name: "Напишите, как к вам обращаться",
+      phone: "Нужен белорусский мобильный, например +375 29 123-45-67",
+      comment: "Не больше 500 символов",
+    },
     status: {
       successTitle: (name: string) => `Спасибо, ${name}!`,
       successText: (phone: string) => `Перезвоним на ${phone}`,
