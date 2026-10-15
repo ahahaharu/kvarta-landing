@@ -15,6 +15,19 @@ for (const width of [390, 1440]) {
   const el = page.locator(`#${id}`);
   await el.scrollIntoViewIfNeeded();
   await page.waitForTimeout(300);
+  // Секция выше вьюпорта снимается прокруткой – фиксированные шапка и MobileBar
+  // иначе попадают в кадр поверх неё. Прячем всё fixed/sticky вне секции
+  // и индикатор next dev (он в shadow DOM, обход его не видит)
+  await page.evaluate((id) => {
+    const target = document.getElementById(id);
+    document.querySelectorAll('nextjs-portal').forEach((n) => { n.style.display = 'none'; });
+    for (const node of document.querySelectorAll('body *')) {
+      const { position } = getComputedStyle(node);
+      if ((position === 'fixed' || position === 'sticky') && !target.contains(node) && !node.contains(target)) {
+        node.style.visibility = 'hidden';
+      }
+    }
+  }, id);
   await el.screenshot({ path: `.shots/${id}-${width}.png`, animations: 'disabled' });
   await page.close();
 }
