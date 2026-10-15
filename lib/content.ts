@@ -114,6 +114,8 @@ export const nav = {
   ],
   cta: "Оставить заявку",
   menuLabel: "Меню",
+  ariaLabel: "Разделы страницы",
+  skipLink: "К форме заявки",
 } as const;
 
 export const coffee = {
