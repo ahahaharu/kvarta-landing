@@ -1,12 +1,140 @@
 @import "tailwindcss";
 
-/* Цвета и остальные токены макета – шаг 3 (feat/design-tokens) */
+/*
+ * Токены макета – design/tokens.md. Значения по умолчанию из Tailwind,
+ * которые макет запрещает (палитра, скругления, мягкие тени, blur), убраны:
+ * класс вроде rounded-lg или shadow-md просто не сгенерируется.
+ */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --blur-*: initial;
+
+  --color-paper: #f2ece0;
+  --color-ink: #1a1411;
+  --color-orange: #e4572e;
+  --color-kraft: #e9dfcd;
+  --color-kraft-dark: #c8a06a;
+  --color-gold: #d9a441;
+  --color-brown: #7a4b2e;
+  --color-white: #ffffff;
+}
+
 @theme inline {
   --font-display: var(--font-oswald);
   --font-sans: var(--font-onest);
   --font-mono: var(--font-jetbrains-mono);
 }
 
-body {
-  font-family: var(--font-sans);
+/* Жёсткие тени без размытия: мобильная 9/6/5 px, с md – 12/8/6 px */
+@utility shadow-hard-lg {
+  box-shadow: 9px 9px 0 var(--color-ink);
+  @media (width >= 48rem) {
+    box-shadow: 12px 12px 0 var(--color-ink);
+  }
+}
+
+@utility shadow-hard-md {
+  box-shadow: 6px 6px 0 var(--color-ink);
+  @media (width >= 48rem) {
+    box-shadow: 8px 8px 0 var(--color-ink);
+  }
+}
+
+@utility shadow-hard-sm {
+  box-shadow: 5px 5px 0 var(--color-ink);
+  @media (width >= 48rem) {
+    box-shadow: 6px 6px 0 var(--color-ink);
+  }
+}
+
+/* Контейнер: 100% – 40 px на мобильной, max 1280 px с полями 48 px */
+@utility container-page {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  @media (width >= 48rem) {
+    padding-inline: 3rem;
+  }
+}
+
+/* Типографические роли: мобильная 390 → десктоп с lg */
+@utility type-h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 3.375rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  @media (width >= 64rem) {
+    font-size: 6rem;
+  }
+}
+
+@utility type-h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2.5rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  @media (width >= 64rem) {
+    font-size: 4rem;
+  }
+}
+
+@utility type-lead {
+  font-size: 1.125rem;
+  line-height: 1.45;
+  @media (width >= 64rem) {
+    font-size: 1.25rem;
+  }
+}
+
+@utility type-body {
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  @media (width >= 64rem) {
+    font-size: 1.1875rem;
+  }
+}
+
+@utility type-label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  @media (width >= 64rem) {
+    font-size: 0.75rem;
+  }
+}
+
+@layer base {
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    @apply type-body bg-paper font-sans text-ink;
+  }
+
+  /* На тёмных секциях переопределяем --focus-ring на светлый */
+  :focus-visible {
+    outline: 3px solid var(--focus-ring, var(--color-ink));
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: var(--color-orange);
+    color: var(--color-ink);
+  }
 }
