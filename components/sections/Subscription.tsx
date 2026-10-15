@@ -7,7 +7,9 @@ import { ORDER_HREF, subscription } from "@/lib/content";
 // С lg фото в колонке фиксированной ширины 504 px
 const PHOTO_SIZES = "(min-width: 1024px) 504px, calc(100vw - 40px)";
 
-// Оранжевая полоса: весь мелкий текст – ink (белый на orange только крупным)
+// Оранжевая полоса: весь мелкий текст – ink (белый на orange только крупным).
+// С lg трекинг заголовка 0 и gap 48 px: иначе «доставка бесплатно» (≈ 622 px)
+// не влезает в колонку и рвётся на 3 строки, а в макете их 2
 export function Subscription() {
   return (
     <section
@@ -15,10 +17,10 @@ export function Subscription() {
       aria-labelledby="subscription-title"
       className="bg-orange py-12 text-ink lg:py-22"
     >
-      <div className="container-page grid gap-x-14 lg:grid-cols-[1fr_minmax(0,31.5rem)] lg:grid-rows-[auto_1fr]">
+      <div className="container-page grid gap-x-12 lg:grid-cols-[1fr_minmax(0,31.5rem)] lg:grid-rows-[auto_1fr]">
         <div className="lg:self-end">
           <p className="type-label">{subscription.tag}</p>
-          <h2 id="subscription-title" className="type-h2 mt-5 lg:mt-7">
+          <h2 id="subscription-title" className="type-h2 mt-5 lg:mt-7 lg:tracking-normal">
             {subscription.title}
           </h2>
         </div>
