@@ -8,7 +8,7 @@ import "./globals.css";
 const oswald = Oswald({
   variable: "--font-oswald",
   subsets: ["latin", "cyrillic"],
-  weight: ["500", "700"],
+  weight: "700",
   display: "swap",
 });
 
