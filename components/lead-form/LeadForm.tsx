@@ -309,6 +309,10 @@ export function LeadForm() {
           type="submit"
           size="lg"
           disabled={submitting}
+          // Мышь не уводит фокус из поля: иначе blur покажет ошибку над кнопкой,
+          // кнопка съедет вниз, mouseup придётся мимо – и клик потеряется.
+          // Ошибки и фокус после отправки расставит handleSubmit
+          onMouseDown={(event) => event.preventDefault()}
           className={status.kind === "error" ? "mt-4 w-full" : "w-full"}
         >
           {submitting ? form.submitting : canRetry ? form.retry : form.submit}
