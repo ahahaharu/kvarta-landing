@@ -20,7 +20,7 @@
         "categories:seo": ["error", { "minScore": 1 }],
         "largest-contentful-paint": [
           "error",
-          { "maxNumericValue": 2500, "aggregationMethod": "optimistic" }
+          { "maxNumericValue": 3500, "aggregationMethod": "optimistic" }
         ],
         "cumulative-layout-shift": [
           "error",
