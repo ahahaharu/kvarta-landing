@@ -30,6 +30,17 @@
   --font-mono: var(--font-jetbrains-mono);
 }
 
+/* Смена формы на карточку успеха (ТЗ, раздел 11) */
+@theme {
+  --animate-fade-in: fade-in 250ms ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
 /* Жёсткие тени без размытия: мобильная 9/6/5 px, с md – 12/8/6 px */
 @utility shadow-hard-lg {
   box-shadow: 9px 9px 0 var(--color-ink);
