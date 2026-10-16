@@ -33,6 +33,15 @@ test("политика и 404", async ({ page }) => {
   expect(await seriousViolations(page)).toEqual([]);
 });
 
+test("открытое мобильное меню", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "меню только < lg");
+  await openLanding(page);
+  await page.locator("#header summary").click();
+  await expect(page.locator("[data-menu-panel]")).toBeVisible();
+
+  expect(await seriousViolations(page)).toEqual([]);
+});
+
 test("форма с ошибками полей", async ({ page }) => {
   await openLanding(page);
   const lead = leadForm(page);
