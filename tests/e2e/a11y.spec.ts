@@ -3,6 +3,10 @@ import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { expect, leadForm, openLanding, test } from "./fixtures";
 
+// Без анимаций: блок, который ещё не появился (opacity 0), axe пропускает
+// как скрытый, а на середине появления считает контраст полупрозрачного текста
+test.use({ reducedMotion: "reduce" });
+
 async function seriousViolations(page: Page) {
   const { violations } = await new AxeBuilder({ page })
     // Оверлей и индикатор next dev – не наша страница
