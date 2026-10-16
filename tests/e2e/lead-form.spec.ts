@@ -85,6 +85,22 @@ test("пустая форма – фокус на первое неверное 
   await expect(lead.root.getByText(form.errors.phone)).toBeVisible();
 });
 
+test.describe("клик мышью по кнопке", () => {
+  // Без анимации нажатия кнопка сдвигается сразу – худший случай
+  test.use({ reducedMotion: "reduce" });
+
+  test("не теряется, когда ошибка с blur сдвигает кнопку", async ({ page }) => {
+    await openLanding(page);
+    const lead = leadForm(page);
+
+    await lead.phone.fill("123");
+    await lead.submit.click();
+
+    await expect(lead.name).toBeFocused();
+    await expect(lead.root.getByText(form.errors.name)).toBeVisible();
+  });
+});
+
 test("двойной клик – один запрос", async ({ page }) => {
   await openLanding(page);
   const lead = leadForm(page);
