@@ -306,6 +306,25 @@ export const order = {
   },
 } as const;
 
+// Уведомление менеджеру в Telegram о новой заявке (ТЗ, раздел 11)
+export const leadNotice = {
+  title: (interest: string) => `☕ Новая заявка – ${interest}`,
+  comment: "Комментарий",
+  empty: "–",
+  source: "Откуда",
+  direct: "прямой заход",
+  // Метки нет, а click id есть: переход с рекламы без UTM
+  ad: (clickIdType: string) => `реклама (${clickIdType})`,
+  campaign: "Кампания",
+  content: "Объявление",
+  page: "Страница",
+  devices: {
+    phone: "Телефон",
+    tablet: "Планшет",
+    desktop: "Компьютер",
+  },
+} as const;
+
 export const footer = {
   logo: business.name,
   address: business.address,
