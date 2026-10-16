@@ -17,6 +17,9 @@
 /blob-report/
 /playwright/.cache/
 
+# отчёты Lighthouse CI (pnpm lhci); итоговый – в docs/lighthouse/
+.lighthouseci/
+
 # скриншоты для сверки с макетом (scripts/shot.mjs)
 .shots/
 
