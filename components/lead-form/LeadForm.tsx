@@ -221,6 +221,7 @@ export function LeadForm() {
 
   return (
     <form
+      method="post"
       noValidate
       className="relative flex flex-col gap-6"
       onSubmit={(event) => {
