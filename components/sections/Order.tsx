@@ -14,12 +14,13 @@ export function Order() {
       aria-labelledby="order-title"
       className="container-page grid gap-x-14 py-12 lg:grid-cols-[5fr_6fr] lg:grid-rows-[auto_1fr] lg:py-22"
     >
-      <h2 id="order-title" className="type-h2 lg:pt-1">
+      <h2 data-reveal id="order-title" className="type-h2 lg:pt-1">
         {order.title}
       </h2>
 
       <Card
         id={LEAD_FORM_ID}
+        data-reveal
         tone="white"
         shadow="lg"
         className="mt-6 mr-2.5 p-5 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:mr-3 lg:self-start lg:p-9"
@@ -27,7 +28,7 @@ export function Order() {
         <LeadForm />
       </Card>
 
-      <div className="mt-8 lg:mt-9">
+      <div data-reveal className="mt-8 lg:mt-9">
         <Photo
           photo={order.photo}
           sizes={PHOTO_SIZES}

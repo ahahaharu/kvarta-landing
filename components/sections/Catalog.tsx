@@ -20,7 +20,10 @@ export function Catalog() {
       aria-labelledby="coffee-title"
       className="container-page py-12 lg:py-22"
     >
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
+      <div
+        data-reveal
+        className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between lg:gap-8"
+      >
         <h2 id="coffee-title" className="type-h2">
           {coffee.title}
         </h2>
@@ -35,6 +38,7 @@ export function Catalog() {
             <Card
               key={item.number}
               as="li"
+              data-reveal
               tone={style.card}
               className="flex flex-col p-5 lg:p-6"
             >

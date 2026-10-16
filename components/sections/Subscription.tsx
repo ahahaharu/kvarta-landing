@@ -19,7 +19,7 @@ export function Subscription() {
       className="bg-orange py-12 text-ink lg:py-22"
     >
       <div className="container-page grid gap-x-12 lg:grid-cols-[1fr_minmax(0,31.5rem)] lg:grid-rows-[auto_1fr]">
-        <div className="lg:self-end">
+        <div data-reveal className="lg:self-end">
           <p className="type-label">{subscription.tag}</p>
           <h2
             id="subscription-title"
@@ -29,7 +29,10 @@ export function Subscription() {
           </h2>
         </div>
 
-        <div className="relative mt-6 mr-2 mb-16 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:my-0 lg:mr-0 lg:self-center">
+        <div
+          data-reveal
+          className="relative mt-6 mr-2 mb-16 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:my-0 lg:mr-0 lg:self-center"
+        >
           <Photo
             photo={subscription.photo}
             sizes={PHOTO_SIZES}
@@ -55,7 +58,7 @@ export function Subscription() {
           </Card>
         </div>
 
-        <div className="lg:mt-6">
+        <div data-reveal className="lg:mt-6">
           <p className="max-w-lg">
             <ShortFull text={subscription.text} />
           </p>

@@ -18,9 +18,14 @@ export function Freshness() {
       className="bg-ink py-12 text-paper [--focus-ring:var(--color-paper)] lg:py-22"
     >
       <div className="container-page">
-        <p className="type-label text-orange">{freshness.tag}</p>
+        <p data-reveal className="type-label text-orange">
+          {freshness.tag}
+        </p>
 
-        <div className="mt-5 grid gap-5 lg:mt-6 lg:grid-cols-[1fr_minmax(0,30rem)] lg:items-center lg:gap-16">
+        <div
+          data-reveal
+          className="mt-5 grid gap-5 lg:mt-6 lg:grid-cols-[1fr_minmax(0,30rem)] lg:items-center lg:gap-16"
+        >
           <h2 id="freshness-title" className="type-h2">
             {freshness.title}
           </h2>
@@ -37,6 +42,7 @@ export function Freshness() {
             return (
               <li
                 key={step.day}
+                data-reveal
                 className={cn(
                   "border-2",
                   isLast
