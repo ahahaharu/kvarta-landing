@@ -1,11 +1,15 @@
+import type { CSSProperties } from "react";
+import { MobileMenu } from "@/components/MobileMenu";
 import { ButtonLink } from "@/components/ui/Button";
-import { nav, ORDER_HREF } from "@/lib/content";
+import { business, nav, ORDER_HREF } from "@/lib/content";
 
-// На мобильной меню – <details> без JS. Он не закрывается по клику на якорь,
-// поэтому шапка липкая только с lg, где якоря стоят в строку.
+// Шапка липкая на всех ширинах. До lg меню – <details> (закрывает его MobileMenu):
+// карточка выпадает из-под шапки, страница под ней затемняется – меню не сливается
+// с бумажной страницей и её кнопками. Анимации – в globals.css
+
 export function Header() {
   return (
-    <header id="header" className="relative z-40 bg-paper lg:sticky lg:top-0">
+    <header id="header" className="sticky top-0 z-40 bg-paper">
       <a
         href={ORDER_HREF}
         className="sr-only bg-orange px-5 py-3 font-bold focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
@@ -43,42 +47,71 @@ export function Header() {
           </ButtonLink>
         </div>
 
-        <details className="group lg:hidden">
+        <MobileMenu className="lg:hidden">
           <summary className="flex size-12 cursor-pointer list-none items-center justify-center border-3 border-ink [&::-webkit-details-marker]:hidden">
             <span className="sr-only">{nav.menuLabel}</span>
-            <span aria-hidden="true" className="relative block h-3.5 w-5.5">
-              <span className="absolute inset-x-0 top-0 h-0.5 bg-ink group-open:translate-y-1.5 group-open:rotate-45" />
-              <span className="absolute inset-x-0 top-1.5 h-0.5 bg-ink group-open:hidden" />
-              <span className="absolute inset-x-0 bottom-0 h-0.5 bg-ink group-open:-translate-y-1.5 group-open:-rotate-45" />
+            {/* Бургер и крестик – в globals.css, [data-burger] */}
+            <span
+              data-burger
+              aria-hidden="true"
+              className="relative block h-3.5 w-5.5 *:absolute *:inset-x-0 *:h-0.5 *:bg-ink"
+            >
+              <span className="top-0" />
+              <span className="top-1.5" />
+              <span className="bottom-0" />
             </span>
           </summary>
 
+          {/* Затемнение страницы под карточкой, клик по нему закрывает меню */}
+          <div
+            data-menu-scrim
+            aria-hidden="true"
+            className="fixed inset-x-0 top-16 bottom-0 bg-ink/40"
+          />
+
+          {/* Карточка-этикетка, как у сортов: kraft, рамка ink, жёсткая тень */}
           <nav
+            data-menu-panel
             aria-label={nav.ariaLabel}
-            className="absolute inset-x-0 top-16 border-b-3 border-ink bg-paper"
+            className="fixed inset-x-5 top-19 max-h-[calc(100dvh-6rem)] overflow-y-auto overscroll-contain border-3 border-ink bg-kraft shadow-hard-lg md:left-auto md:right-12 md:w-96"
           >
-            <ul className="container-page flex flex-col pt-2 pb-6">
-              {nav.links.map((link) => (
+            <ul className="px-4 pt-1">
+              {nav.links.map((link, index) => (
                 <li
                   key={link.href}
+                  style={{ "--i": index } as CSSProperties}
                   className="border-b-2 border-dashed border-ink"
                 >
                   <a
                     href={link.href}
-                    className="flex min-h-14 items-center font-display text-[1.75rem] leading-none font-bold tracking-[0.02em] uppercase"
+                    className="flex min-h-15 items-center gap-3 font-display text-[1.375rem] leading-none font-bold tracking-[0.02em] uppercase"
                   >
+                    <span
+                      aria-hidden="true"
+                      className="type-label shrink-0 text-brown"
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
                     {link.label}
                   </a>
                 </li>
               ))}
-              <li className="mt-6">
-                <ButtonLink href={ORDER_HREF} size="lg" className="w-full">
-                  {nav.cta}
-                </ButtonLink>
-              </li>
             </ul>
+
+            <div className="p-4 pt-5">
+              <ButtonLink href={ORDER_HREF} size="lg" className="w-full">
+                {nav.cta}
+              </ButtonLink>
+            </div>
+
+            <div className="type-label flex flex-col gap-1.5 border-t-2 border-dashed border-ink px-4 py-4 text-brown">
+              <p>{business.address}</p>
+              {business.hours.map((h) => (
+                <p key={h.label}>{h.label}</p>
+              ))}
+            </div>
           </nav>
-        </details>
+        </MobileMenu>
       </div>
     </header>
   );

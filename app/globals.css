@@ -138,10 +138,67 @@
     @apply type-body bg-paper font-sans text-ink;
   }
 
-  /* Шапка липкая только с lg (h-26) – якоря не уезжают под неё */
+  /* Шапка липкая (h-16, с lg h-26) – якоря не уезжают под неё */
   [id] {
+    scroll-margin-top: 4rem;
+
     @media (width >= 64rem) {
       scroll-margin-top: 6.5rem;
+    }
+  }
+
+  /*
+   * Открытое мобильное меню (components/MobileMenu.tsx): страница под ним
+   * не крутится. На время анимации закрытия уже отпускаем – иначе якорь
+   * из меню не прокрутит страницу
+   */
+  html:has(#header details[open]:not([data-closing])) {
+    @media (width < 64rem) {
+      overflow: hidden;
+    }
+  }
+
+  /* Бургер превращается в крестик, пока меню открыто */
+  #header details[open]:not([data-closing]) [data-burger] > :nth-child(1) {
+    transform: translateY(0.375rem) rotate(45deg);
+  }
+  #header details[open]:not([data-closing]) [data-burger] > :nth-child(2) {
+    opacity: 0;
+  }
+  #header details[open]:not([data-closing]) [data-burger] > :nth-child(3) {
+    transform: translateY(-0.375rem) rotate(-45deg);
+  }
+
+  /*
+   * Карточка меню выпадает из-под шапки, пункты въезжают лесенкой
+   * (--i – номер пункта), затемнение проявляется. Закрытие – быстрее и обратно
+   */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    [data-burger] > * {
+      transition:
+        transform 200ms ease-out,
+        opacity 200ms ease-out;
+    }
+
+    [data-menu-scrim] {
+      animation: fade-in 200ms ease-out;
+    }
+
+    [data-menu-panel] {
+      animation: menu-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    [data-menu-panel] li {
+      animation: menu-item-in 260ms ease-out backwards;
+      animation-delay: calc(60ms + var(--i, 0) * 40ms);
+    }
+
+    [data-closing] [data-menu-scrim] {
+      animation: fade-out 160ms ease-in forwards;
+    }
+
+    [data-closing] [data-menu-panel] {
+      animation: menu-out 160ms ease-in forwards;
     }
   }
 
@@ -169,6 +226,33 @@
   ::selection {
     background-color: var(--color-orange);
     color: var(--color-ink);
+  }
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+}
+
+@keyframes menu-out {
+  to {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+}
+
+@keyframes menu-item-in {
+  from {
+    opacity: 0;
+    transform: translateX(-0.75rem);
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
   }
 }
 
