@@ -36,8 +36,13 @@ export default defineConfig({
         command: process.env.CI ? "pnpm start" : "pnpm dev",
         url: baseURL,
         reuseExistingServer: !process.env.CI,
-        // Заявки из тестов – в kvarta_test, а не в базу из .env.local
-        env: { DATABASE_URL: TEST_DATABASE_URL },
+        // Заявки из тестов – в kvarta_test, а не в базу из .env.local,
+        // и не в чат менеджеров: пустое значение Next не перезаписывает
+        env: {
+          DATABASE_URL: TEST_DATABASE_URL,
+          TELEGRAM_BOT_TOKEN: "",
+          TELEGRAM_CHAT_ID: "",
+        },
         timeout: 120_000,
       },
 });
