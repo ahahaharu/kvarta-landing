@@ -1,6 +1,6 @@
+import { LeadForm } from "@/components/lead-form/LeadForm";
 import { Card } from "@/components/ui/Card";
 import { Photo } from "@/components/ui/Photo";
-import { ShortFull } from "@/components/ui/ShortFull";
 import { LEAD_FORM_ID, order } from "@/lib/content";
 
 // Левая колонка с lg: 538 px в контейнере 1280, иначе ~43vw
@@ -18,16 +18,13 @@ export function Order() {
         {order.title}
       </h2>
 
-      {/* Форма заявки – шаг 8 (LeadForm). Пока только каркас карточки. */}
       <Card
         id={LEAD_FORM_ID}
         tone="white"
         shadow="lg"
         className="mt-6 mr-2.5 p-5 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:mr-3 lg:self-start lg:p-9"
       >
-        <p className="text-sm text-brown">
-          <ShortFull text={order.form.note} />
-        </p>
+        <LeadForm />
       </Card>
 
       <div className="mt-8 lg:mt-9">
