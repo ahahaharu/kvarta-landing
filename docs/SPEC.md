@@ -301,7 +301,7 @@ kvarta/
 
 **Правила**
 
-- Все секции – Server Components. `"use client"` только у LeadForm, MobileBar, Reveal и кнопок CTA, которые предзаполняют форму.
+- Все секции – Server Components. `"use client"` только у LeadForm, MobileBar, MobileMenu, Reveal и кнопок CTA, которые предзаполняют форму.
 - Страница статическая: никаких `cookies()`/`headers()` в `page.tsx`, проверяем в выводе `next build` (значок ○).
 - Фото: исходники до 1800 px в `public/images`, `next/image` с точными `sizes`; hero – высокий приоритет загрузки, остальные lazy; у каждого слота `aspect-ratio`, чтобы не было сдвигов.
 - Шрифты: только нужные начертания; preload только у Oswald и Onest, JetBrains Mono без preload.
