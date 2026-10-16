@@ -55,7 +55,7 @@ export function Hero() {
           </ButtonLink>
         </div>
 
-        <ul className="mt-6 flex flex-wrap gap-x-8 gap-y-2 border-t-3 border-ink pt-5 text-[0.9375rem] lg:mt-8 lg:pt-6">
+        <ul className="mt-6 flex flex-col gap-x-8 md:flex-row md:flex-wrap gap-y-2 border-t-3 border-ink pt-5 text-[0.9375rem] lg:mt-8 lg:pt-6">
           {hero.facts.map((fact) => (
             <li key={fact}>{fact}</li>
           ))}
