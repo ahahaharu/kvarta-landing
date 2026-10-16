@@ -16,7 +16,7 @@ pnpm build            # прод-сборка; страница должна б�
 pnpm lint && pnpm typecheck
 pnpm test             # Vitest unit + integration (нужна БД: pnpm db:up)
 pnpm test:e2e         # Playwright
-pnpm lhci             # Lighthouse mobile
+pnpm lhci             # Lighthouse mobile по прод-сборке (сначала pnpm build), отчёты в .lighthouseci/
 pnpm db:up / db:down  # Postgres в Docker (порт 5433)
 pnpm db:generate / db:migrate / db:studio
 ```
