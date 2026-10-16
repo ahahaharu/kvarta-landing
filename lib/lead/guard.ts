@@ -1,6 +1,7 @@
 // Защита POST /api/lead до записи в БД (ТЗ, раздел 10): Origin, хеш IP, фильтр ботов.
 // Без React и без Next – функции принимают заголовки и env, их легко тестировать.
 import { createHash } from "node:crypto";
+import { toOrigin } from "@/lib/site";
 
 type Env = Record<string, string | undefined>;
 
@@ -10,15 +11,6 @@ const DEV_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"];
 export const MIN_FILL_MS = 3000;
 
 export const USER_AGENT_MAX = 200;
-
-function toOrigin(value: string | undefined, protocol = "https://") {
-  if (!value) return null;
-  try {
-    return new URL(value.includes("://") ? value : protocol + value).origin;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Свой домен и превью Vercel этого проекта. Vercel отдаёт хосты без протокола:
