@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Onest, Oswald } from "next/font/google";
+import { seo } from "@/lib/content";
+import { openGraphBase } from "@/lib/metadata";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const oswald = Oswald({
@@ -25,9 +28,20 @@ const jetbrainsMono = JetBrains_Mono({
   preload: false,
 });
 
+// OG-картинка и иконки – файлы рядом (opengraph-image.jpg, icon.svg, apple-icon.png,
+// favicon.ico), Next сам ставит теги. Пересобрать: node scripts/brand-assets.mjs
 export const metadata: Metadata = {
-  title: "Кварта",
-  description: "Обжарка кофе в Минске",
+  metadataBase: siteUrl(),
+  title: { default: seo.title, template: seo.titleTemplate },
+  description: seo.description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    ...openGraphBase,
+    title: seo.title,
+    description: seo.description,
+    url: "/",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({
