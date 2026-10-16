@@ -2,6 +2,7 @@
 // клиенту и повторяет всю валидацию; правила полей – из rules.ts, тексты – из content.ts.
 // Только для сервера: в форму импортируем rules.ts, а не этот файл (zod – ~25 КБ gzip).
 import { z } from "zod";
+import { ATTRIBUTION_MAX, CLICK_ID_TYPES } from "@/lib/attribution";
 import { interestLabels, order, type Interest } from "@/lib/content";
 import { COMMENT_MAX, NAME_MAX, NAME_MIN, normalizeByPhone } from "./rules";
 
@@ -12,9 +13,6 @@ export const INTERESTS = Object.keys(interestLabels) as [
   ...Interest[],
 ];
 
-export const CLICK_ID_TYPES = ["yclid", "fbclid", "gclid"] as const;
-
-export const ATTRIBUTION_MAX = 500;
 // С запасом на скобки, пробелы и дефисы вокруг 12 цифр
 const PHONE_RAW_MAX = 32;
 const HONEYPOT_MAX = 500;
