@@ -101,4 +101,4 @@ claude
 1. `git switch main && git pull` → `claude` → «шаг N».
 2. Claude делает ветку, коммиты, PR. Вы смотрите превью и сливаете через «Rebase and merge».
 3. Перед слиянием шагов 7 и 8: «запусти code-reviewer». После вёрстки: «запусти design-qa для hero и freshness».
-4. В конце: `/cost` → цифру в `NOTES.md`; `/export` → `ai-log/NN-ветка.md` (проверить, что внутри нет токенов); `/clear`.
+4. В конце: `/export` → `ai-log/NN-ветка.md` (проверить, что внутри нет токенов); `/clear`.

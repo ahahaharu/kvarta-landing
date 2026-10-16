@@ -87,7 +87,7 @@ kvarta/
 │  ├─ agents/  settings.json
 ├─ docs/                    # SPEC.md (это ТЗ), lighthouse/
 ├─ ai-log/                  # экспорты сессий Claude Code
-├─ NOTES.md                 # где ИИ ошибся, расход токенов
+├─ NOTES.md                 # где ИИ ошибся, решения по ходу
 ├─ CLAUDE.md
 ├─ docker-compose.yml
 ├─ .env.example
@@ -458,7 +458,6 @@ CSP с nonce надёжнее, но делает страницу динамич
 2. Тихий вывод: Vitest `--reporter=dot`, Playwright `--reporter=line`, от Lighthouse – только сводка.
 3. Точечное чтение: сначала поиск (grep/glob), потом нужный файл; скриншоты – только нужной секции.
 4. Крупные шаги (7, 8) начинать в plan mode: поправить план дешевле, чем переписывать код.
-5. В конце сессии `/cost` – цифра в `NOTES.md` (пригодится для README).
 
 **Лог сессий для сдачи**
 
