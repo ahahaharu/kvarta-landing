@@ -3,6 +3,7 @@ import { and, asc, count, desc, eq, gt, or, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { leads } from "@/db/schema";
 import type { Lead } from "./schema";
+import type { TelegramStatus } from "./telegram";
 
 export const DUPLICATE_WINDOW_MINUTES = 10;
 export const RATE_LIMIT_PER_HOUR = 5;
@@ -110,4 +111,13 @@ export async function createLead(
     if (!byKey) throw new Error("Lead conflict without a matching row");
     return { kind: "duplicate", id: byKey.id };
   });
+}
+
+/** Итог уведомления менеджеру; пишется после ответа клиенту */
+export async function setTelegramStatus(
+  db: Db,
+  id: string,
+  status: TelegramStatus,
+): Promise<void> {
+  await db.update(leads).set({ telegramStatus: status }).where(eq(leads.id, id));
 }

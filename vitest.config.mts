@@ -21,12 +21,16 @@ export default defineConfig({
           name: "integration",
           include: ["tests/integration/**/*.test.ts"],
           globalSetup: ["tests/integration/global-setup.ts"],
+          setupFiles: ["tests/integration/setup.ts"],
           // Файлы делят одну базу kvarta_test и чистят её перед каждым тестом
           fileParallelism: false,
           env: {
             DATABASE_URL: TEST_DATABASE_URL,
             NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
             IP_HASH_SALT: "test-salt",
+            // Тесты не пишут в чат менеджеров; нужный тест задаёт свои значения
+            TELEGRAM_BOT_TOKEN: "",
+            TELEGRAM_CHAT_ID: "",
           },
         },
       },
