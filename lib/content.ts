@@ -2,6 +2,9 @@
 // Типографика: тире «–», кавычки «», неразрывный пробел перед BYN, «г» и «кг».
 // Заголовки хранятся в обычном регистре – верхний регистр задаёт CSS.
 // { full, short } – текст, который на мобильной короче, чем на десктопе.
+// Форма и MobileBar импортируют этот файл в клиентский бандл. Неиспользуемые объекты
+// сборщик вырезает, но чтение свойства (hero.title.before) считает побочным эффектом
+// и оставляет весь объект. Общие значения – константами, а не через чужие объекты.
 
 const NBSP = " ";
 
@@ -120,19 +123,22 @@ export const nav = {
   skipLink: "К форме заявки",
 } as const;
 
+// Сорт на этикетке в hero – отдельной константой, а не coffee.items[0]
+const featured = {
+  number: "01",
+  tag: "Светлая обжарка",
+  name: "Эфиопия Иргачеффе",
+  notes: "цветочный, бергамот",
+  price: 32,
+  orderComment: `Эфиопия Иргачеффе, ${PACK}`,
+} as const;
+
 export const coffee = {
   title: "Что сейчас в обжарке",
   subtitle: `Цены за пачку ${PACK}`,
   orderLabel: "Заказать",
   items: [
-    {
-      number: "01",
-      tag: "Светлая обжарка",
-      name: "Эфиопия Иргачеффе",
-      notes: "цветочный, бергамот",
-      price: 32,
-      orderComment: `Эфиопия Иргачеффе, ${PACK}`,
-    },
+    featured,
     {
       number: "02",
       tag: "Колумбия",
@@ -163,7 +169,13 @@ export const coffee = {
 
 export type CoffeeItem = (typeof coffee.items)[number];
 
-const featured = coffee.items[0];
+
+// «В пятницу» выделено оранжевым
+const heroTitle = {
+  before: "Обжарили в четверг.",
+  accent: "В пятницу",
+  after: "уже у вас.",
+} as const;
 
 export const hero = {
   tags: [
@@ -173,12 +185,7 @@ export const hero = {
       short: `${CITY} · с ${FOUNDED_YEAR}`,
     },
   ],
-  // «В пятницу» выделено оранжевым
-  title: {
-    before: "Обжарили в четверг.",
-    accent: "В пятницу",
-    after: "уже у вас.",
-  },
+  title: heroTitle,
   lead: {
     full: `Маленькая мастерская в Минске. Жарим партиями по ${BATCH}, чтобы зерно доезжало до вас на 1–3 день после обжарки.`,
     short:
@@ -226,10 +233,11 @@ export const founders = {
 } as const;
 
 const PER_MONTH = "/ мес";
+const SUBSCRIPTION_TAG = "Подписка";
 const subscriptionPrice = `${formatPrice(SUBSCRIPTION_PRICE)} ${PER_MONTH}`;
 
 export const subscription = {
-  tag: "Подписка",
+  tag: SUBSCRIPTION_TAG,
   title: "Две пачки в месяц, доставка бесплатно",
   text: {
     full: `2 пачки по ${PACK} раз в месяц. Оставьте заявку: менеджер перезвонит и всё оформит. Корзина и оплата онлайн не нужны.`,
@@ -338,7 +346,7 @@ export const footer = {
 } as const;
 
 export const mobileBar = {
-  tag: "Подписка",
+  tag: SUBSCRIPTION_TAG,
   price: subscriptionPrice,
   cta: "Заявка",
   interest: "subscription",
@@ -350,8 +358,8 @@ export const seo = {
   // Для внутренних страниц: «Политика… – Кварта»
   titleTemplate: `%s – ${business.name}`,
   description: `Обжариваем по четвергам, в пятницу привозим по Минску – зерно у вас на 1–3 день после обжарки. Подписка: 2 пачки по ${PACK} за ${formatPrice(SUBSCRIPTION_PRICE)} в месяц, доставка бесплатно.`,
-  ogAlt: `${hero.title.before} ${hero.title.accent} ${hero.title.after} Обжарка «${business.name}», ${CITY}: руки держат крафтовую пачку кофе`,
-  ogBadge: `${subscription.tag} · ${subscriptionPrice}`,
+  ogAlt: `${heroTitle.before} ${heroTitle.accent} ${heroTitle.after} Обжарка «${business.name}», ${CITY}: руки держат крафтовую пачку кофе`,
+  ogBadge: `${SUBSCRIPTION_TAG} · ${subscriptionPrice}`,
 } as const;
 
 // Политика обработки персональных данных (ТЗ, раздел 10). Не юридическая консультация:
