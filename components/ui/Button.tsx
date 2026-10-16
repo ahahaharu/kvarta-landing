@@ -30,8 +30,10 @@ export function buttonClasses({
 }: ButtonStyleProps = {}): string {
   return cn(
     "inline-flex items-center justify-center border-3 border-ink text-center leading-none",
-    "motion-safe:transition-[translate,box-shadow] motion-safe:duration-150",
-    "not-disabled:hover:-translate-0.5 not-disabled:hover:shadow-hard-sm not-disabled:active:translate-0 not-disabled:active:shadow-none",
+    // Нажатие (ТЗ, раздел 11): при наведении под кнопкой тень 6 px,
+    // при нажатии кнопка сдвигается на её место и тень пропадает
+    "motion-safe:transition-[translate,box-shadow] motion-safe:duration-80",
+    "not-disabled:hover:shadow-[6px_6px_0_var(--color-ink)] not-disabled:active:translate-1.5 not-disabled:active:shadow-none",
     "disabled:cursor-not-allowed disabled:opacity-60",
     variants[variant],
     sizes[size],

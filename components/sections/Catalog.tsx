@@ -40,7 +40,8 @@ export function Catalog() {
               as="li"
               data-reveal
               tone={style.card}
-              className="flex flex-col p-5 lg:p-6"
+              // hover: в Tailwind v4 – только для устройств с наведением, на телефоне карточка не прыгает
+              className="flex flex-col p-5 hover:-translate-y-1 hover:shadow-hard-sm motion-safe:transition-[translate,box-shadow] motion-safe:duration-150 lg:p-6"
             >
               <div className="flex items-center justify-between gap-3">
                 <span className="hidden font-mono text-xs font-medium md:block">
