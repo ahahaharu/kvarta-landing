@@ -3,6 +3,7 @@ import { Card, type CardTone } from "@/components/ui/Card";
 import { Label, type LabelTone } from "@/components/ui/Label";
 import { ShortFull } from "@/components/ui/ShortFull";
 import { coffee, CURRENCY, ORDER_HREF } from "@/lib/content";
+import { prefillAttrs } from "@/lib/prefill";
 
 // Цвет метки и фон этикетки по порядку карточек, как в макете
 const LABEL_STYLES: { tag: LabelTone; card: CardTone }[] = [
@@ -69,6 +70,10 @@ export function Catalog() {
                 </p>
                 <ButtonLink
                   href={ORDER_HREF}
+                  {...prefillAttrs({
+                    interest: "order",
+                    comment: item.orderComment,
+                  })}
                   variant="dark"
                   size="sm"
                   className="shrink-0"
