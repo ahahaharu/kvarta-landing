@@ -127,3 +127,42 @@ jobs:
           name: playwright-traces
           path: test-results/
           retention-days: 7
+
+  lighthouse:
+    name: Lighthouse (mobile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Главная статическая, база ей не нужна. Порт – как в lighthouserc.json,
+    # чтобы canonical и ссылки указывали на проверяемый сервер
+    env:
+      NEXT_PUBLIC_SITE_URL: http://localhost:3100
+      NEXT_TELEMETRY_DISABLED: 1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # Chrome уже есть в образе ubuntu-latest. Железо CI слабее, поэтому
+      # порог performance 0,9; итоговый замер – PageSpeed Insights по проду
+      - name: Lighthouse CI
+        run: pnpm lhci
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 7
