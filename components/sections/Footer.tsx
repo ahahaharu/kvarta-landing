@@ -1,15 +1,22 @@
+import { cn } from "@/lib/cn";
 import { business, footer } from "@/lib/content";
 
 const EXTERNAL = { target: "_blank", rel: "noopener noreferrer" } as const;
 // py-1 – цель касания не меньше 24 px
 const LINK = "py-1 underline-offset-4 hover:underline";
 
-// На мобильной снизу запас под плашку MobileBar с учётом safe-area
-export function Footer() {
+// На мобильной снизу запас под плашку MobileBar с учётом safe-area.
+// На внутренних страницах плашки нет – и запаса тоже.
+export function Footer({ withMobileBar = true }: { withMobileBar?: boolean }) {
   return (
     <footer
       id="footer"
-      className="bg-ink pt-10 pb-[calc(7rem+env(safe-area-inset-bottom))] text-paper [--focus-ring:var(--color-paper)] md:pb-10 lg:py-9"
+      className={cn(
+        "bg-ink pt-10 text-paper [--focus-ring:var(--color-paper)] md:pb-10 lg:py-9",
+        withMobileBar
+          ? "pb-[calc(7rem+env(safe-area-inset-bottom))]"
+          : "pb-[calc(2.5rem+env(safe-area-inset-bottom))]",
+      )}
     >
       <div className="container-page">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-8">
