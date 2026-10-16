@@ -19,13 +19,24 @@ const onest = Onest({
   display: "swap",
 });
 
-// Метки и плашки – не в первом экране, preload не нужен
+// Без preload (ТЗ, раздел 9), поэтому метки hero сначала рисуются запасным шрифтом.
+// Next подставляет Arial – он на треть шире, метки переносились на вторую строку,
+// а после загрузки шрифта hero прыгал вверх (CLS 0,16). У системных моноширинных
+// знак ~0,6 em, как у JetBrains Mono: ширина метки не меняется
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin", "cyrillic"],
   weight: "500",
   display: "swap",
   preload: false,
+  adjustFontFallback: false,
+  fallback: [
+    "ui-monospace",
+    "Menlo",
+    "Consolas",
+    "Liberation Mono",
+    "monospace",
+  ],
 });
 
 // OG-картинка и иконки – файлы рядом (opengraph-image.jpg, icon.svg, apple-icon.png,
