@@ -32,7 +32,7 @@ pnpm db:generate / db:migrate / db:studio
 
 ## Правила кода
 
-- Server Components по умолчанию. `"use client"` – только LeadForm, MobileBar, Reveal и CTA, которые предзаполняют форму.
+- Server Components по умолчанию. `"use client"` – только LeadForm, MobileBar, MobileMenu, Reveal и CTA, которые предзаполняют форму.
 - Новые зависимости – только после вопроса пользователю.
 - Все тексты, цены, адрес, часы – только из `lib/content.ts`.
 - Типографика: тире «–» (не «—»), кавычки «», неразрывный пробел перед BYN и «г».
