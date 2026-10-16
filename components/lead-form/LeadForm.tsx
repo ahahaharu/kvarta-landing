@@ -19,6 +19,7 @@ import {
 } from "@/lib/lead/form";
 import { formatByPhone, normalizeByPhone } from "@/lib/lead/phone";
 import { createIdempotencyKey, submitLead } from "@/lib/lead/submit";
+import { prefersReducedMotion } from "@/lib/motion";
 import { nextComment, readPrefill } from "@/lib/prefill";
 import { controlClasses, Field, fieldDescribedBy } from "./Field";
 import { FormError, FormSuccess, type FormErrorReason } from "./FormStatus";
@@ -27,6 +28,11 @@ import { InterestChips } from "./InterestChips";
 const { form } = order;
 
 type Values = Record<FormField, string> & { interest: Interest };
+
+// Дрожание поля с ошибкой при отправке (ТЗ, раздел 11): ±4 px за 250 мс
+const SHAKE: Keyframe[] = [0, -4, 4, -4, 4, 0].map((x) => ({
+  transform: `translateX(${x}px)`,
+}));
 
 type Status =
   | { kind: "idle" }
@@ -131,9 +137,19 @@ export function LeadForm() {
     }));
   }
 
-  function focusFirstInvalid(fieldErrors: FormErrors) {
-    const first = FORM_FIELDS.find((field) => fieldErrors[field]);
-    if (first) fieldRefs.current[first]?.focus();
+  // Отправка не прошла из-за полей: фокус на первое, все ошибочные вздрагивают.
+  // На blur не дрожим – человек уже ушёл к следующему полю
+  function showInvalid(fieldErrors: FormErrors) {
+    const invalid = FORM_FIELDS.filter((field) => fieldErrors[field]);
+    if (invalid.length === 0) return;
+    fieldRefs.current[invalid[0]]?.focus();
+    if (prefersReducedMotion()) return;
+    for (const field of invalid) {
+      fieldRefs.current[field]?.animate(SHAKE, {
+        duration: 250,
+        easing: "ease-in-out",
+      });
+    }
   }
 
   async function handleSubmit() {
@@ -143,7 +159,7 @@ export function LeadForm() {
     setErrors(fieldErrors);
     if (Object.keys(fieldErrors).length > 0) {
       setStatus({ kind: "idle" });
-      focusFirstInvalid(fieldErrors);
+      showInvalid(fieldErrors);
       return;
     }
 
@@ -184,7 +200,7 @@ export function LeadForm() {
       case "validation":
         setErrors(outcome.fields);
         setStatus({ kind: "idle" });
-        focusFirstInvalid(outcome.fields);
+        showInvalid(outcome.fields);
         return;
       default:
         setStatus({ kind: "error", reason: outcome.kind });

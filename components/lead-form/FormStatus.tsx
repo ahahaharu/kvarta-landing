@@ -51,7 +51,11 @@ export function FormSuccess({
   }, []);
 
   return (
-    <div role="status" aria-live="polite">
+    <div
+      role="status"
+      aria-live="polite"
+      className="motion-safe:animate-fade-in"
+    >
       <h3
         ref={titleRef}
         tabIndex={-1}
