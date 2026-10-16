@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ButtonLink } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { LEAD_FORM_ID, mobileBar, ORDER_HREF } from "@/lib/content";
+import { prefillAttrs } from "@/lib/prefill";
 
 // Нижняя плашка < md: появляется, когда hero ушёл вверх за экран,
 // и прячется, пока форма заявки в зоне видимости (ТЗ, раздел 4).
@@ -51,7 +52,7 @@ export function MobileBar() {
             {mobileBar.price}
           </span>
         </p>
-        <ButtonLink href={ORDER_HREF} size="lg">
+        <ButtonLink href={ORDER_HREF} size="lg" {...prefillAttrs(mobileBar)}>
           {mobileBar.cta}
         </ButtonLink>
       </div>

@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/Card";
 import { Photo } from "@/components/ui/Photo";
 import { ShortFull } from "@/components/ui/ShortFull";
 import { ORDER_HREF, subscription } from "@/lib/content";
+import { prefillAttrs } from "@/lib/prefill";
 
 // С lg фото в колонке фиксированной ширины 504 px
 const PHOTO_SIZES = "(min-width: 1024px) 504px, calc(100vw - 40px)";
@@ -20,7 +21,10 @@ export function Subscription() {
       <div className="container-page grid gap-x-12 lg:grid-cols-[1fr_minmax(0,31.5rem)] lg:grid-rows-[auto_1fr]">
         <div className="lg:self-end">
           <p className="type-label">{subscription.tag}</p>
-          <h2 id="subscription-title" className="type-h2 mt-5 lg:mt-7 lg:tracking-normal">
+          <h2
+            id="subscription-title"
+            className="type-h2 mt-5 lg:mt-7 lg:tracking-normal"
+          >
             {subscription.title}
           </h2>
         </div>
@@ -57,6 +61,7 @@ export function Subscription() {
           </p>
           <ButtonLink
             href={ORDER_HREF}
+            {...prefillAttrs(subscription.cta)}
             variant="dark"
             size="lg"
             className="mt-6 w-full lg:mt-8 lg:w-auto"

@@ -5,6 +5,7 @@ import { Photo } from "@/components/ui/Photo";
 import { ShortFull } from "@/components/ui/ShortFull";
 import { cn } from "@/lib/cn";
 import { hero, ORDER_HREF } from "@/lib/content";
+import { prefillAttrs } from "@/lib/prefill";
 
 // Две колонки с lg: фото 460 px в контейнере 1280, иначе ~35vw; на md – до 448 px
 const PHOTO_SIZES =
@@ -41,10 +42,15 @@ export function Hero() {
         </p>
 
         <div className="mt-7 flex flex-col gap-4 md:flex-row md:flex-wrap lg:mt-8">
-          <ButtonLink href={ORDER_HREF} size="lg">
+          <ButtonLink href={ORDER_HREF} size="lg" {...prefillAttrs(primary)}>
             {primary.label}
           </ButtonLink>
-          <ButtonLink href={ORDER_HREF} size="lg" variant="outline">
+          <ButtonLink
+            href={ORDER_HREF}
+            size="lg"
+            variant="outline"
+            {...prefillAttrs(secondary)}
+          >
             {secondary.label}
           </ButtonLink>
         </div>
