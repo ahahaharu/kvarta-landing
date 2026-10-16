@@ -1,4 +1,4 @@
-// axe: 0 нарушений serious/critical на странице и в состояниях формы (ТЗ, раздел 14)
+// axe: 0 нарушений serious/critical на страницах и в состояниях формы (ТЗ, раздел 14)
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { expect, leadForm, openLanding, test } from "./fixtures";
@@ -19,6 +19,13 @@ async function seriousViolations(page: Page) {
 
 test("страница", async ({ page }) => {
   await openLanding(page);
+  expect(await seriousViolations(page)).toEqual([]);
+});
+
+test("политика и 404", async ({ page }) => {
+  await page.goto("/privacy");
+  expect(await seriousViolations(page)).toEqual([]);
+  await page.goto("/no-such-page");
   expect(await seriousViolations(page)).toEqual([]);
 });
 
