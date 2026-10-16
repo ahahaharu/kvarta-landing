@@ -155,7 +155,9 @@ jobs:
         run: pnpm build
 
       # Chrome уже есть в образе ubuntu-latest. Железо CI слабее, поэтому
-      # порог performance 0,9; итоговый замер – PageSpeed Insights по проду
+      # порог performance 0,9; итоговый замер – PageSpeed Insights по проду.
+      # LCP – по лучшему из 3 прогонов: на localhost вся загрузка занимает ~50 мс,
+      # и симуляция на одном и том же коде даёт от 2,3 до 3,4 с
       - name: Lighthouse CI
         run: pnpm lhci
 
