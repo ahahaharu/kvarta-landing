@@ -6,6 +6,7 @@ import { Freshness } from "@/components/sections/Freshness";
 import { Header } from "@/components/sections/Header";
 import { Hero } from "@/components/sections/Hero";
 import { Order } from "@/components/sections/Order";
+import { Reveal } from "@/components/Reveal";
 import { Subscription } from "@/components/sections/Subscription";
 import { coffeeShopJsonLd, serializeJsonLd } from "@/lib/jsonld";
 import { siteUrl } from "@/lib/site";
@@ -24,6 +25,7 @@ export default function Home() {
       </main>
       <Footer />
       <MobileBar />
+      <Reveal />
       <script
         type="application/ld+json"
         // Данные только из content.ts, «<» экранирован в serializeJsonLd

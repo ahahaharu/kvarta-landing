@@ -12,14 +12,16 @@ export function Founders() {
       aria-labelledby="founders-title"
       className="container-page grid gap-9 py-12 md:grid-cols-[5fr_4fr] md:items-center md:gap-10 lg:gap-14 lg:py-22"
     >
-      <Photo
-        photo={founders.photo}
-        sizes={PHOTO_SIZES}
-        aspect="aspect-[4/3]"
-        className="border-3 border-ink shadow-hard-lg"
-      />
+      <div data-reveal>
+        <Photo
+          photo={founders.photo}
+          sizes={PHOTO_SIZES}
+          aspect="aspect-[4/3]"
+          className="border-3 border-ink shadow-hard-lg"
+        />
+      </div>
 
-      <div>
+      <div data-reveal>
         {/* На макете метка оранжевая, но мелкий оранжевый на бумаге – 3,1:1 (ТЗ, раздел 9) */}
         <p className="type-label text-brown">{founders.tag}</p>
         <h2 id="founders-title" className="type-h2 mt-5">
