@@ -1,0 +1,795 @@
+ ▐▛███▛█   Claude Code v2.1.281
+▝▜██████▀  Opus 5.5 · Claude Pro
+  ▝▝ ▝▝    ~/Documents/Programming/kvarta-landing
+
+
+❯ приступим к пункту 9                                                          
+
+  Read 1 file, ran 5 shell commands (ctrl+o to expand)
+
+⏺ Создал ветку test/e2e от свежего main и разобрался в форме, API и защите от
+  ботов. Перед тем как писать тесты, нужно ваше решение по двум пунктам.
+
+⏺ User answered Claude's questions:
+  ⎿  · ТЗ (раздел 14) требует проверку доступности через @axe-core/playwright – 
+     это новая dev-зависимость. Ставим? → Ставим (Recommended)
+     · Мобильный проект Playwright: сейчас это Chromium с вьюпортом 390. ТЗ 
+     говорит «iPhone 13» – в Playwright это движок WebKit. Какой вариант? → 
+     WebKit iPhone 13 (Recommended)
+
+  Searched for 2 patterns, read 1 file, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Сейчас ставлю @axe-core/playwright и пишу сценарии. Сначала настрою
+  Playwright: проекты iPhone 13 (WebKit) и Desktop Chrome.
+
+⏺ Bash(pnpm add -D @axe-core/playwright 2>&1 | tail -5 && grep -n "axe"
+      package.json && cat .gitignore | grep -n
+      "playwright\|test-results\|shots")
+  ⎿  │   Run "pnpm approve-builds" to pick which dependencies should be all
+     owed     │
+     │   to run scripts.
+     … +11 lines (ctrl+o to expand)
+  ⎿  Updated package.json (+1 -0)
+      26      "zod": "^4.6.7"
+      27    },
+      28    "devDependencies": {
+      29 +    "@axe-core/playwright": "^4.14.0",                         
+      30      "@playwright/test": "^1.64.1",
+      31      "@tailwindcss/turbopack": "^4",
+      32      "@types/node": "^20",
+  ⎿  Updated pnpm-lock.yaml (+14 -0)
+      27          specifier: ^4.6.7
+      28          version: 4.6.7
+      29      devDependencies:
+      30 +      '@axe-core/playwright':                                  
+      31 +        specifier: ^4.14.0                                     
+      32 +        version: 4.14.0(playwright-core@1.64.1)                
+      33        '@playwright/test':
+      34          specifier: ^1.64.1
+      35          version: 1.64.1
+     ...
+      76      resolution: {integrity: sha512-U4+70Pc5ZS9osnCBCE5Jha/ciHM+
+          Yp+CNMNC/7HvYbNRk1Ldd+f7qO65W5qfhu/TCv+/ozljlXXe9Nj8419DMA==}
+      77      engines: {node: '>=10'}
+      78  
+      79 +  '@axe-core/playwright@4.14.0':                               
+      80 +    resolution: {integrity: sha512-SGUhG5PIHd2eMdpgBF2PyQLOhX+q
+         +yDR2PT4cmoS4Qk2ak+jX/rrSvst9l0PGv5WTHolKpUMvVmoHpr4cZgf1RQ==}  
+      81 +    engines: {node: '>=22.12.0'}                               
+      82 +    peerDependencies:                                          
+      83 +      playwright-core: '>= 1.0.0'                              
+      84 +                                                               
+      85    '@babel/code-frame@7.29.7':
+      86      resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMB
+          lzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
+      87      engines: {node: '>=6.9.0'}
+     ...
+      2990  
+      2991    '@alloc/quick-lru@5.3.0': {}
+      2992  
+      2993 +  '@axe-core/playwright@4.14.0(playwright-core@1.64.1)':     
+      2994 +    dependencies:                                            
+      2995 +      axe-core: 4.14.0                                       
+      2996 +      playwright-core: 1.64.1                                
+      2997 +                                                             
+      2998    '@babel/code-frame@7.29.7':
+      2999      dependencies:
+      3000        '@babel/helper-validator-identifier': 7.29.7
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(cat > playwright.config.ts <<'EOF'
+      import { defineConfig, devices } from "@playwright/test";…)
+  ⎿  kvarta-db Up 23 hours (healthy)
+  ⎿  Updated playwright.config.ts (+5 -6)
+      12      baseURL,
+      13      trace: "on-first-retry",
+      14    },
+      15 +  // Аудитория приходит из Instagram на iPhone – мобильный прое
+         +кт на WebKit                                                   
+      16    projects: [
+      17      {
+      18        name: "mobile",
+      18 -      use: {                                                   
+      19 -        ...devices["Desktop Chrome"],                          
+      20 -        viewport: { width: 390, height: 844 },                 
+      21 -      },                                                       
+      19 +      use: { ...devices["iPhone 13"] },                        
+      20      },
+      21      {
+      22        name: "desktop",
+     ...
+      26        },
+      27      },
+      28    ],
+      31 -  // Свой сервер поднимаем, только если тестируем локально, а н
+         -е превью-деплой                                                
+      29 +  // Свой сервер поднимаем, только если тестируем локально, а н
+         +е превью-деплой.                                               
+      30 +  // В CI – прод-сборка: проверяем то, что уедет на Vercel     
+      31    webServer: process.env.PLAYWRIGHT_BASE_URL
+      32      ? undefined
+      33      : {
+      35 -        command: "pnpm dev",                                   
+      34 +        command: process.env.CI ? "pnpm start" : "pnpm dev",   
+      35          url: baseURL,
+      36          reuseExistingServer: !process.env.CI,
+      37          timeout: 120_000,
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Write(tests/e2e/fixtures.ts)
+  ⎿  Wrote 69 lines to tests/e2e/fixtures.ts
+       1 // Общие фикстуры e2e: каждый тест – со своего IP и со своим ном
+       2 // чтобы лимит 5 заявок в час и дедуп за 10 минут не задевали со
+         седей.
+       3 import { randomInt } from "node:crypto";
+         playwright/test";
+       5 import { LEAD_FORM_ID, order } from "@/lib/content";
+         it";
+       7 
+       8 export { expect };
+      10 const { form } = order;
+     … +71 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/e2e/fixtures.ts'…)
+  ⎿  export { expect };
+
+     const { form } = order;
+     … +13 lines (ctrl+o to expand)
+  ⎿  Updated tests/e2e/fixtures.ts (+2 -3)
+      17  export const test = base.extend({
+      18    page: async ({ page }, use) => {
+      19      // Локально и в CI сервер берёт IP из x-forwarded-for (lib/
+          lead/guard.ts)
+      20 -    await page.setExtraHTTPHeaders({                           
+      21 -      "x-forwarded-for": `198.51.100.${randomInt(1, 255)}, 10.$
+         -{randomInt(256)}.${randomInt(256)}.${randomInt(256)}`,         
+      22 -    });                                                        
+      20 +    const ip = [10, randomInt(256), randomInt(256), randomInt(2
+         +56)].join(".");                                                
+      21 +    await page.setExtraHTTPHeaders({ "x-forwarded-for": ip }); 
+      22      // Форму «открыли» 10 с назад: иначе сервер примет быстрый 
+          Playwright
+      23      // за бота и ответит тихим 201 без записи (ТЗ, раздел 10)
+      24      await page.clock.setFixedTime(Date.now() - 10_000);
+
+⏺ Фикстуры готовы — теперь пишу первый сценарий: успешная заявка и проверка
+  гидратации, чтобы убедиться, что подход работает.
+
+⏺ Write(tests/e2e/lead-form.spec.ts)
+  ⎿  Wrote 108 lines to tests/e2e/lead-form.spec.ts
+       1 // Заявка через настоящий API и базу: успех, дубль, валидация, д
+         войной клик
+       2 import { order } from "@/lib/content";
+       3 import {
+       4   expect,
+       6   leadForm,
+       7   openLanding,
+       8   test,
+       9   uniquePhone,
+      10 } from "./fixtures";
+     … +108 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/e2e/lead-form.spec.ts'…)
+  ⎿    3) [mobile] › tests/e2e/lead-form.spec.ts:14:5 › заявка уходит, повт
+     ор того же номера – карточка дубля
+     … +36 lines (ctrl+o to expand)
+  ⎿  Updated tests/e2e/lead-form.spec.ts (+1 -1)
+      65    await expect(lead.phone).toBeFocused();
+      66    await expect(lead.phone).toHaveAttribute("aria-invalid", "tru
+          e");
+      67    await expect(lead.phone).toHaveAccessibleDescription(
+      68 -    `${form.errors.phone} ${form.phone.hint}`,                 
+      68 +    `${form.phone.hint} ${form.errors.phone}`,                 
+      69    );
+      70    expect(requests).toBe(0);
+      71  
+
+⏺ Десктоп прошёл с первого раза. Теперь ставлю WebKit для мобильного проекта и
+  переключаю e2e-тесты на базу kvarta_test, чтобы не засорять рабочую.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(cat > tests/e2e/global-setup.ts <<'EOF'
+      // Миграции в kvarta_test – только когда сервер поднимаем сами.
+      Превью-деплой…)
+  ⎿      },
+       ],
+       // Свой сервер поднимаем, только если тестируем локально, а не превь
+     … +13 lines (ctrl+o to expand)
+  ⎿  Updated playwright.config.ts (+4 -0)
+       1  import { defineConfig, devices } from "@playwright/test";
+       2 +import { TEST_DATABASE_URL } from "./tests/integration/db-url";
+       3  
+       4  const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://loca
+          lhost:3000";
+       5  
+       6  export default defineConfig({
+       7    testDir: "./tests/e2e",
+       8 +  globalSetup: "./tests/e2e/global-setup.ts",                  
+       9    fullyParallel: true,
+      10    forbidOnly: !!process.env.CI,
+      11    retries: process.env.CI ? 1 : 0,
+     ...
+      36          command: process.env.CI ? "pnpm start" : "pnpm dev",
+      37          url: baseURL,
+      38          reuseExistingServer: !process.env.CI,
+      39 +        // Заявки из тестов – в kvarta_test, а не в базу из .en
+         +v.local                                                        
+      40 +        env: { DATABASE_URL: TEST_DATABASE_URL },              
+      41          timeout: 120_000,
+      42        },
+      43  });
+  ⎿  Created tests/e2e/global-setup.ts (+8 -0)
+      1 +// Миграции в kvarta_test – только когда сервер поднимаем сами. 
+        +Превью-деплой                                                   
+      2 +// (PLAYWRIGHT_BASE_URL) пишет в свою базу, её не трогаем       
+      3 +import migrateTestDatabase from "../integration/global-setup";  
+      4 +                                                                
+      5 +export default async function setup() {                         
+      6 +  if (process.env.PLAYWRIGHT_BASE_URL) return;                  
+      7 +  await migrateTestDatabase();                                  
+      8 +}                                                               
+
+⏺ Write(tests/e2e/lead-errors.spec.ts)
+  ⎿  Wrote 90 lines to tests/e2e/lead-errors.spec.ts
+       1 // Сбои отправки через page.route: понятный текст, данные на мес
+         те,
+       2 // «Повторить» шлёт тот же idempotencyKey и доводит заявку до ко
+       3 import { order } from "@/lib/content";
+       4 import {
+       5   expect,
+       6   isLeadRequest,
+       8   leadPayload,
+       9   openLanding,
+      10   test,
+     … +88 lines (ctrl+o to expand)
+
+⏺ Готовы сценарии ошибок (500, обрыв сети, 429). Дальше займусь атрибуцией,
+  предзаполнением из CTA, мобильной плашкой и axe, пока докачивается WebKit.
+
+⏺ Write(tests/e2e/attribution.spec.ts)
+  ⎿  Wrote 69 lines to tests/e2e/attribution.spec.ts
+       1 // Метки рекламы из ссылки доходят до API вместе с заявкой (ТЗ, 
+         раздел 8)
+       2 import {
+       3   expect,
+       4   isLeadRequest,
+       6   leadPayload,
+       7   openLanding,
+       8   test,
+       9   uniquePhone,
+      10 } from "./fixtures";
+     … +63 lines (ctrl+o to expand)
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Background command "Install Playwright WebKit and Chromium" completed (exit
+code 0)
+
+⏺ Write(tests/e2e/prefill.spec.ts)
+  ⎿  Wrote 37 lines to tests/e2e/prefill.spec.ts
+       1 // CTA на странице ведут к форме и предзаполняют её (ТЗ, раздел 
+         4)
+       3 import { expect, leadForm, openLanding, test } from "./fixtures"
+         ;
+       4 
+       6 
+       7 test("CTA подписки ставит «Подписка» и ведёт к форме", async ({ 
+         page }) => {
+       9   const lead = leadForm(page);
+      10   // Сначала уводим выбор с подписки по умолчанию
+     … +30 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/e2e/fixtures.ts'…)
+  ⎿  [11/24] [mobile] › tests/e2e/prefill.spec.ts:7:5 › CTA подписки ставит
+      «Подписка» и ведёт к форме
+     [12/24] [mobile] › tests/e2e/prefill.spec.ts:22:5 › «Заказать» на карт
+     … +57 lines (ctrl+o to expand)
+  ⎿  Updated tests/e2e/fixtures.ts (+2 -0)
+      56      phone: root.getByLabel(form.phone.label),
+      57      comment: root.getByLabel(form.comment.label),
+      58      interest: (label: string) => root.getByRole("radio", { name
+          : label }),
+      59 +    // Сам radio скрыт (sr-only) – человек нажимает на чип-labe
+         +l                                                              
+      60 +    chip: (label: string) => root.locator("label").filter({ has
+         +Text: label }),                                                
+      61      submit: root.getByRole("button", { name: form.submit }),
+      62      retry: root.getByRole("button", { name: form.retry }),
+      63      error: root.getByRole("alert"),
+  ⎿  Updated tests/e2e/lead-errors.spec.ts (+1 -1)
+      48  
+      49      await lead.name.fill("Анна");
+      50      await lead.phone.fill(phone);
+      51 -    await lead.interest(form.interest.options.order).check();  
+      51 +    await lead.chip(form.interest.options.order).click();      
+      52      await lead.comment.fill("Колумбия, в зёрнах");
+      53      await lead.submit.click();
+      54  
+  ⎿  Updated tests/e2e/prefill.spec.ts (+1 -1)
+       8    await openLanding(page);
+       9    const lead = leadForm(page);
+      10    // Сначала уводим выбор с подписки по умолчанию
+      11 -  await lead.interest(options.question).check({ force: true });
+      11 +  await lead.chip(options.question).click();                   
+      12  
+      13    await page
+      14      .locator("#subscription")
+⏺ 22 из 24 тестов зелёные, включая WebKit — падает только поиск ссылки
+  «Заказать» на карточке. Проверяю, какое у неё доступное имя.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Нашёл причину лишнего пробела в имени ссылки «Заказать : Колумбия Уила» — это
+  безвредный артефакт sr-only-спана внутри inline-flex кнопки, не влияющий на
+  скринридер. Тест буду искать по названию сорта, затем перейду к проверке
+  мобильной плашки и axe.
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/e2e/prefill.spec.ts'…)
+  ⎿  Updated tests/e2e/prefill.spec.ts (+2 -1)
+      28  
+      29    await page
+      30      .locator("#coffee")
+      31 -    .getByRole("link", { name: `${coffee.orderLabel}: ${item.na
+         -me}` })                                                        
+      31 +    // Имя ссылки – «Заказать: {сорт}», сорт виден только скрин
+         +ридеру                                                         
+      32 +    .getByRole("link", { name: item.name })                    
+      33      .click();
+      34  
+      35    await expect(lead.interest(options.order)).toBeChecked();
+
+⏺ Bash(cat > tests/e2e/mobile-bar.spec.ts <<'EOF'
+      // Нижняя плашка на мобильном: появляется после hero и не закрывает…)
+  ⎿  Created tests/e2e/a11y.spec.ts (+47 -0)
+       1 +// axe: 0 нарушений serious/critical на странице и в состояниях
+         + формы (ТЗ, раздел 14)                                         
+       2 +import AxeBuilder from "@axe-core/playwright";                 
+       3 +import type { Page } from "@playwright/test";                  
+       4 +import { expect, leadForm, openLanding, test } from "./fixtures
+         +";                                                             
+       5 +                                                               
+       6 +async function seriousViolations(page: Page) {                 
+       7 +  const { violations } = await new AxeBuilder({ page })        
+       8 +    // Оверлей и индикатор next dev – не наша страница         
+       9 +    .exclude("nextjs-portal")                                  
+      10 +    .analyze();                                                
+      11 +  return violations                                            
+      12 +    .filter((v) => v.impact === "serious" || v.impact === "crit
+         +ical")                                                         
+      13 +    .map((v) => ({                                             
+      14 +      id: v.id,                                                
+      15 +      help: v.help,                                            
+      16 +      targets: v.nodes.map((n) => n.target.join(" ")),         
+      17 +    }));                                                       
+      18 +}                                                              
+      19 +                                                               
+      20 +test("страница", async ({ page }) => {                         
+      21 +  await openLanding(page);                                     
+      22 +  expect(await seriousViolations(page)).toEqual([]);           
+      23 +});                                                            
+      24 +                                                               
+      25 +test("форма с ошибками полей", async ({ page }) => {           
+      26 +  await openLanding(page);                                     
+      27 +  const lead = leadForm(page);                                 
+      28 +  await lead.phone.fill("123");                                
+      29 +  await lead.submit.click();                                   
+      30 +  await expect(lead.name).toBeFocused();                       
+      31 +                                                               
+      32 +  expect(await seriousViolations(page)).toEqual([]);           
+      33 +});                                                            
+      34 +                                                               
+      35 +test("ошибка отправки", async ({ page }) => {                  
+      36 +  await openLanding(page);                                     
+      37 +  const lead = leadForm(page);                                 
+      38 +  await page.route("**/api/lead", (route) =>                   
+      39 +    route.fulfill({ status: 500, json: { ok: false, error: "ser
+         +ver" } }),                                                     
+      40 +  );                                                           
+     … 7 more lines (ctrl+o to expand)
+  ⎿  Created tests/e2e/mobile-bar.spec.ts (+36 -0)
+       1 +// Нижняя плашка на мобильном: появляется после hero и не закры
+         +вает                                                           
+       2 +// кнопку отправки (ТЗ, раздел 4)                              
+       3 +import { mobileBar, order } from "@/lib/content";              
+       4 +import { expect, leadForm, openLanding, test } from "./fixtures
+         +";                                                             
+       5 +                                                               
+       6 +test.skip(({ isMobile }) => !isMobile, "плашка только < md");  
+       7 +                                                               
+       8 +test("плашка ведёт к форме и прячется, пока форма на экране", a
+         +sync ({                                                        
+       9 +  page,                                                        
+      10 +}) => {                                                        
+      11 +  await openLanding(page);                                     
+      12 +  const lead = leadForm(page);                                 
+      13 +  const bar = page.getByRole("link", { name: mobileBar.cta, exa
+         +ct: true });                                                   
+      14 +                                                               
+      15 +  await expect(bar).toBeHidden();                              
+      16 +  await page.locator("#coffee").scrollIntoViewIfNeeded();      
+      17 +  await expect(bar).toBeVisible();                             
+      18 +                                                               
+      19 +  // Плашка – тоже CTA подписки                                
+      20 +  await lead.chip(order.form.interest.options.question).click()
+         +;                                                              
+      21 +  await page.locator("#coffee").scrollIntoViewIfNeeded();      
+      22 +  await bar.click();                                           
+      23 +  await expect(lead.name).toBeInViewport();                    
+      24 +  await expect(lead.interest(mobileBar.interest === "subscripti
+         +on" ? order.form.interest.options.subscription : "")).toBeCheck
+         +ed();                                                          
+      25 +  await expect(bar).toBeHidden();                              
+      26 +                                                               
+      27 +  // Кнопка у нижнего края экрана – в этом месте плашка была бы
+         + поверх неё                                                    
+      28 +  await lead.submit.evaluate((node) => node.scrollIntoView({ bl
+         +ock: "end" }));                                                
+      29 +  await expect(bar).toBeHidden();                              
+      30 +  const box = (await lead.submit.boundingBox())!;              
+      31 +  const topmost = await page.evaluate(                         
+      32 +    ([x, y]) => document.elementFromPoint(x!, y!)?.closest("but
+         +ton")?.type,                                                   
+      33 +    [box.x + box.width / 2, box.y + box.height - 4],           
+      34 +  );                                                           
+      35 +  expect(topmost).toBe("submit");                              
+      36 +});                                                            
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/e2e/mobile-bar.spec.ts'…)
+  ⎿  Running 12 tests using 5 workers
+
+     [1/12] [mobile] › tests/e2e/mobile-bar.spec.ts:10:5 › плашка ведёт к ф
+     … +33 lines (ctrl+o to expand)
+  ⎿  Updated tests/e2e/mobile-bar.spec.ts (+4 -2)
+       3  import { mobileBar, order } from "@/lib/content";
+       4  import { expect, leadForm, openLanding, test } from "./fixtures
+          ";
+       5  
+       6 +const { options } = order.form.interest;                       
+       7 +                                                               
+       8  test.skip(({ isMobile }) => !isMobile, "плашка только < md");
+       9  
+      10  test("плашка ведёт к форме и прячется, пока форма на экране", a
+          sync ({
+     ...
+      19    await expect(bar).toBeVisible();
+      20  
+      21    // Плашка – тоже CTA подписки
+      20 -  await lead.chip(order.form.interest.options.question).click()
+         -;                                                              
+      22 +  await lead.chip(options.question).click();                   
+      23    await page.locator("#coffee").scrollIntoViewIfNeeded();
+      24    await bar.click();
+      25    await expect(lead.name).toBeInViewport();
+      24 -  await expect(lead.interest(mobileBar.interest === "subscripti
+         -on" ? order.form.interest.options.subscription : "")).toBeCheck
+         -ed();                                                          
+      26 +  await expect(lead.interest(options[mobileBar.interest])).toBe
+         +Checked();                                                     
+      27    await expect(bar).toBeHidden();
+      28  
+      29    // Кнопка у нижнего края экрана – в этом месте плашка была бы
+           поверх неё
+
+⏺ Bash(grep -n "scroll-behavior\|scroll-smooth\|scroll-padding\|scroll-mt"
+      app/globals.css app/layout.tsx | head; python3 - <<'EOF'
+      p='tests/e2e/mobile-bar.spec.ts'…)
+  ⎿  app/globals.css:122:      scroll-behavior: smooth;
+     Running 1 test using 1 worker
+     [1/1] [mobile] › tests/e2e/mobile-bar.spec.ts:10:5 › плашка ведёт к фо
+     … +14 lines (ctrl+o to expand)
+  ⎿  Updated tests/e2e/mobile-bar.spec.ts (+2 -1)
+      31    await expect(bar).toBeHidden();
+      32    const box = (await lead.submit.boundingBox())!;
+      33    const topmost = await page.evaluate(
+      34 -    ([x, y]) => document.elementFromPoint(x!, y!)?.closest("but
+         -ton")?.type,                                                   
+      34 +    ([x, y]) => document.elementFromPoint(x!, y!)?.outerHTML.sl
+         +ice(0, 120),                                                   
+      35      [box.x + box.width / 2, box.y + box.height - 4],
+      36    );
+      37 +  console.log(box, topmost, await page.evaluate(() => [innerHei
+         +ght, scrollY]));                                               
+      38    expect(topmost).toBe("submit");
+      39  });
+
+⏺ Плавная прокрутка не успела завершиться к моменту замера кнопки — переключу
+  прокрутку на мгновенную и дождусь, пока кнопка полностью появится на экране.
+
+⏺ Bash(python3 - <<'EOF'
+      p='tests/e2e/mobile-bar.spec.ts'…)
+  ⎿  [84/96] [desktop] › tests/e2e/attribution.spec.ts:48:5 › вернулся без
+     меток – заявка помнит рекламный переход
+     [85/96] [desktop] › tests/e2e/attribution.spec.ts:27:5 › UTM и click i
+     … +18 lines (ctrl+o to expand)
+  ⎿  Updated tests/e2e/mobile-bar.spec.ts (+5 -3)
+      27    await expect(bar).toBeHidden();
+      28  
+      29    // Кнопка у нижнего края экрана – в этом месте плашка была бы
+           поверх неё
+      30 -  await lead.submit.evaluate((node) => node.scrollIntoView({ bl
+         -ock: "end" }));                                                
+      30 +  await lead.submit.evaluate((node) =>                         
+      31 +    node.scrollIntoView({ block: "end", behavior: "instant" }),
+      32 +  );                                                           
+      33 +  await expect(lead.submit).toBeInViewport({ ratio: 1 });      
+      34    await expect(bar).toBeHidden();
+      35    const box = (await lead.submit.boundingBox())!;
+      36    const topmost = await page.evaluate(
+      34 -    ([x, y]) => document.elementFromPoint(x!, y!)?.outerHTML.sl
+         -ice(0, 120),                                                   
+      37 +    ([x, y]) => document.elementFromPoint(x!, y!)?.closest("but
+         +ton")?.type,                                                   
+      38      [box.x + box.width / 2, box.y + box.height - 4],
+      39    );
+      37 -  console.log(box, topmost, await page.evaluate(() => [innerHei
+         -ght, scrollY]));                                               
+      40    expect(topmost).toBe("submit");
+      41  });
+
+⏺ Все три прогона прошли успешно (93 теста, 3 пропуска на десктопе). Теперь
+  проведу мутационное тестирование — внесу ошибки в код и проверю, что тесты их
+  обнаруживают.
+
+⏺ Bash(run() { pnpm exec playwright test "$@" --reporter=line 2>&1 | grep -E
+      "passed|failed|flaky" | tail -2; }
+      echo "== 1. без защиты от двойного клика"; sed -i '' 's…)
+  ⎿  == 1. без защиты от двойного клика
+         Error: expect(locator).toBeDisabled() failed
+       2 failed
+     … +14 lines (ctrl+o to expand)
+  ⎿  Updated tests/e2e/fixtures.ts (+1 -1)
+      21      await page.setExtraHTTPHeaders({ "x-forwarded-for": ip });
+      22      // Форму «открыли» 10 с назад: иначе сервер примет быстрый 
+          Playwright
+      23      // за бота и ответит тихим 201 без записи (ТЗ, раздел 10)
+      24 -    await page.clock.setFixedTime(Date.now() - 10_000);        
+      24 +    if (0) await page.clock.setFixedTime(Date.now() - 10_000); 
+      25      await use(page);
+      26    },
+      27  });
+
+⏺ Все четыре внесённые поломки были обнаружены тестами. Четвёртую мутацию в
+  fixtures.ts не удалось откатить через git checkout, поэтому верну изменения
+  вручную.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Bash(sed -i '' 's/    if (0) await page.clock.setFixedTime/    await
+      page.clock.setFixedTime/' tests/e2e/fixtures.ts && grep -n "setFixedTime"
+      tests/e2e/fixtures.ts…)
+  ⎿  24:    await page.clock.setFixedTime(Date.now() - 10_000);
+     // Общие фикстуры e2e: каждый тест – со своего IP и со своим номером,
+     // чтобы лимит 5 заявок в час и дедуп за 10 минут не задевали соседей.
+     … +28 lines (ctrl+o to expand)
+  ⎿  Updated tests/e2e/fixtures.ts (+1 -1)
+      21      await page.setExtraHTTPHeaders({ "x-forwarded-for": ip });
+      22      // Форму «открыли» 10 с назад: иначе сервер примет быстрый 
+          Playwright
+      23      // за бота и ответит тихим 201 без записи (ТЗ, раздел 10)
+      24 -    if (0) await page.clock.setFixedTime(Date.now() - 10_000); 
+      24 +    await page.clock.setFixedTime(Date.now() - 10_000);        
+      25      await use(page);
+      26    },
+      27  });
+
+⏺ Мутацию откатил. Теперь проверю CI-режим локально: прод-сборка + next start,
+  чтобы убедиться, что x-forwarded-for и Origin корректно работают.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ На прод-сборке тоже всё зелёное. Добавляю e2e-джобу в CI и прогоняю
+  lint/typecheck.
+
+⏺ Bash(cat >> .github/workflows/ci.yml <<'EOF'…)
+  ⎿    25:11  error  React Hook "use" is called in function "page" that is
+     neither a React function component nor a custom React Hook function. R
+     eact component names must start with an uppercase letter. React Hook n
+     … +14 lines (ctrl+o to expand)
+  ⎿  Updated .github/workflows/ci.yml (+58 -0)
+       69  
+       70        - name: Audit production dependencies
+       71          run: pnpm audit --prod --audit-level high
+       72 +                                                              
+       73 +  e2e:                                                        
+       74 +    name: E2E (Playwright)                                    
+       75 +    runs-on: ubuntu-latest                                    
+       76 +    timeout-minutes: 15                                       
+       77 +                                                              
+       78 +    # Заявки из тестов идут через настоящий API в базу        
+       79 +    services:                                                 
+       80 +      postgres:                                               
+       81 +        image: postgres:17-alpine                             
+       82 +        env:                                                  
+       83 +          POSTGRES_USER: kvarta                               
+       84 +          POSTGRES_PASSWORD: kvarta                           
+       85 +          POSTGRES_DB: kvarta_test                            
+       86 +        ports:                                                
+       87 +          - 5432:5432                                         
+       88 +        options: >-                                           
+       89 +          --health-cmd "pg_isready -U kvarta -d kvarta_test"  
+       90 +          --health-interval 3s                                
+       91 +          --health-timeout 3s                                 
+       92 +          --health-retries 20                                 
+       93 +                                                              
+       94 +    env:                                                      
+       95 +      DATABASE_URL_TEST: postgres://kvarta:kvarta@localhost:54
+          +32/kvarta_test                                                
+       96 +      IP_HASH_SALT: ci-only-salt                              
+       97 +      NEXT_PUBLIC_SITE_URL: http://localhost:3000             
+       98 +      NEXT_TELEMETRY_DISABLED: 1                              
+       99 +                                                              
+      100 +    steps:                                                    
+      101 +      - uses: actions/checkout@v4                             
+      102 +                                                              
+      103 +      - uses: pnpm/action-setup@v4                            
+      104 +                                                              
+      105 +      - uses: actions/setup-node@v4                           
+      106 +        with:                                                 
+      107 +          node-version: 24                                    
+      108 +          cache: pnpm                                         
+     … 21 more lines (ctrl+o to expand)
+
+⏺ Bash(sed -i '' 's/  page: async ({ page }, use) => {/  page: async ({ page },
+      provide) => {/; s/    await use(page);/    await provide(page);/'
+      tests/e2e/fixtures.ts…)
+  ⎿  [warn] .claude/hooks/check.mjs
+     [warn] .claude/hooks/format.mjs
+     [warn] .claude/settings.json
+     … +14 lines (ctrl+o to expand)
+  ⎿  Updated tests/e2e/fixtures.ts (+2 -2)
+      15  const { form } = order;
+      16  
+      17  export const test = base.extend({
+      18 -  page: async ({ page }, use) => {                             
+      18 +  page: async ({ page }, provide) => {                         
+      19      // Локально и в CI сервер берёт IP из x-forwarded-for (lib/
+          lead/guard.ts)
+      20      const ip = [10, randomInt(256), randomInt(256), randomInt(2
+          56)].join(".");
+      21      await page.setExtraHTTPHeaders({ "x-forwarded-for": ip });
+      22      // Форму «открыли» 10 с назад: иначе сервер примет быстрый 
+          Playwright
+      23      // за бота и ответит тихим 201 без записи (ТЗ, раздел 10)
+      24      await page.clock.setFixedTime(Date.now() - 10_000);
+      25 -    await use(page);                                           
+      25 +    await provide(page);                                       
+      26    },
+      27  });
+      28  
+
+⏺ Предупреждения Prettier – те же, что в main, не мои. Повторяю lint и запускаю
+  Vitest.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Всё зелёное: lint, typecheck, 172 теста Vitest. Последний прогон e2e в
+  dev-режиме после переименования, потом коммиты.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='NOTES.md'…)
+  ⎿  147fe2b docs(notes): record e2e decisions
+     98d33aa ci: run Playwright e2e against a production build
+     2ef95ce test(a11y): check page and form states with axe
+     … +8 lines (ctrl+o to expand)
+  ⎿  Updated NOTES.md (+2 -0)
+      19  - Шаг 7: в одной транзакции блокировки по IP, потом по номеру (
+          порядок фиксирован – без взаимных блокировок). Сначала дубль, п
+          отом лимит: повтор той же заявки получает 200, а не 429. Один `
+          idempotencyKey` с разными номерами ловит `ON CONFLICT DO NOTHIN
+          G`. `startedAt` в будущем (часы телефона спешат) ботом не счита
+          ем. Без `IP_HASH_SALT` в production – 500: IPv4 без соли восста
+          навливается перебором. Запрос без `Origin` – 403. В лог из ошиб
+          ки postgres.js берём только `code` и `message`: в `parameters` 
+          лежит номер.
+      20  - Шаг 8: CTA – серверные ссылки на `#order` с `data-interest`/`
+          data-comment`, форма ловит клики делегированием на `document`. 
+          Клиентских CTA-компонентов нет, без JS ссылка просто прокручива
+          ет к форме. Комментарий из CTA заменяет только пустое поле или 
+          текст прошлого CTA. Ошибку на blur не показываем, если пустое п
+          оле просто проскочили табом. Кнопка во время отправки `disabled
+          `, второй запрос дополнительно режет `inFlight`. LeadForm + Mob
+          ileBar с `content.ts` – ~5 КБ gzip (esbuild).
+      21  - Шаг 8: Server Action вместо `fetch` не берём – исходное задан
+          ие называет `POST /api/lead` (ТЗ, раздел 2). Плюс Server Action
+           – работа без JS – для аудитории из Instagram почти ничего не д
+          аёт, а таймаут, «Повторить» и коды 429/413/415 через `fetch` пр
+          още и уже покрыты тестами шага 7.
+      22 +- Шаг 9: e2e идут через настоящий API в `kvarta_test` (не в баз
+         +у из `.env.local`), сбои – через `page.route`. Чтобы тесты не м
+         +ешали друг другу и не упирались в защиту: у каждого теста свой 
+         +`x-forwarded-for` (лимит 5 в час) и свой номер (дедуп 10 мин), 
+         +а `page.clock.setFixedTime(-10 с)` – иначе сервер считает быстр
+         +ую форму ботом и отвечает тихим 201 без записи. Успех доказывае
+         +м повтором того же номера: 200 duplicate бывает только при запи
+         +си в базу. Мобильный проект – WebKit (iPhone 13), в CI – прод-с
+         +борка через `next start`. Мутационная проверка: без защиты от д
+         +войного клика, с новым ключом на «Повторить», с плашкой поверх 
+         +формы и без сдвига времени падает свой тест.                   
+      23 +- Шаг 9: доступное имя кнопки на карточке – «Заказать : Колумби
+         +я Уила» (sr-only-спан внутри `inline-flex` становится отдельным
+         + элементом). Скринридеру не мешает, не правили. Проверку заголо
+         +вков ответа главной (раздел 10) добавим в шаге 11 вместе с сами
+         +ми заголовками.                                                
+
+⏺ Закоммитил по частям (8 коммитов). Пушу и открываю PR по шаблону – сначала
+  гляну, как оформлен прошлый PR.
+
+  Created PR #13, ran 2 shell commands (ctrl+o to expand)
+
+⏺ PR открыт. Жду результат CI – проверю, что новая джоба на WebKit проходит на
+  Linux.
+
+  Ran 1 shell command (ctrl+o to expand)
+⏺ Шаг 9 готов, PR открыт: https://github.com/ahahaharu/kvarta-landing/pull/13.
+  CI ещё идёт – напишу, когда закончится.
+
+  Что сделано
+  - 16 сценариев в tests/e2e/, каждый в двух проектах: iPhone 13 на WebKit и
+    Chrome 1440 px. Покрыто всё, что ТЗ требует от e2e:
+    - успешная заявка через настоящий API, а при повторе того же номера –
+      карточка дубля;
+    - неверный номер: показываются подсказка и ошибка, фокус на поле;
+    - двойной клик отправляет один запрос;
+    - при ответе 500 и обрыве сети показывается понятный текст, данные остаются
+      в полях, «Повторить» отправляет заявку с тем же ключом;
+    - UTM-метки доходят в теле запроса;
+    - CTA предзаполняют форму;
+    - мобильная плашка не закрывает кнопку отправки;
+    - axe находит 0 нарушений serious/critical на странице и в двух состояниях
+      ошибки.
+  - Как тесты обходят защиту API: у каждого теста свой IP в x-forwarded-for и
+    свой номер, а время в браузере сдвинуто на 10 с назад. Иначе сервер
+    принимает Playwright за бота и отвечает тихим 201, ничего не записав. Что
+    заявка правда легла в базу, доказывает повтор номера: ответ 200 duplicate
+    бывает только после записи.
+  - Заявки из тестов пишутся в kvarta_test, а не в базу из .env.local.
+  - CI: отдельная джоба на прод-сборке (next start) со своим Postgres и
+    браузерами Chromium и WebKit. Если тесты упадут, трейсы сохраняются в
+    артефакт.
+
+  Проверки
+  - Локально: 31 passed, 1 skipped (плашка на desktop не тестируется). Три
+    прогона подряд без случайных падений, против прод-сборки тоже всё зелёное.
+  - lint, typecheck и 172 теста Vitest проходят.
+  - Проверил сами тесты: ломал по очереди защиту от двойного клика, ключ при
+    «Повторить», скрытие плашки и сдвиг времени. Каждый раз падал свой тест.
+
+  Что ещё стоит знать
+  - У кнопок «Заказать» на карточках доступное имя «Заказать : Колумбия Уила», с
+    лишним пробелом перед двоеточием. Скринридеру это не мешает, я не правил и
+    записал в NOTES.md.
+  - Проверку заголовков ответа главной (раздел 10 ТЗ) отложил на шаг 11, когда
+    появятся сами заголовки.
+  - Если pnpm dev уже запущен, Playwright использует этот сервер, и тестовые
+    заявки уйдут в рабочую базу из .env.local, а не в kvarta_test.
+
+✻ Baked for 21m 20s · done Friday 4:08 PM
+
+⏺ Background command "Watch PR CI checks until done" completed (exit code 0)
+
+  Read 1 file (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Все проверки CI на PR #13 прошли:
+  - новая джоба E2E (Playwright) (WebKit и Chromium на прод-сборке) – зелёная,
+    около 2 минут;
+  - lint, typecheck, тесты и сборка – зелёные;
+  - превью Vercel собралось.
+
+  В описании PR отметил пункт про CI как выполненный. PR готов, мержить вам:
+  https://github.com/ahahaharu/kvarta-landing/pull/13
+
+✻ Crunched for 19s · done Friday 4:11 PM

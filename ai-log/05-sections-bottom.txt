@@ -1,0 +1,1140 @@
+ ▐▛███▛█   Claude Code v2.1.281
+▝▜██████▀  Opus 5.5 · Claude Pro
+  ▝▝ ▝▝    ~/Documents/Programming/kvarta-landing
+
+
+❯ /clear                                                                        
+
+❯ переходм к этапу 5                                                            
+
+  Searched for 1 pattern, read 2 files, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Ветка feat/sections-bottom создана из свежего main. Смотрю макеты секций 05–08
+  перед вёрсткой.
+
+  Searched for 1 pattern, read 7 files, ran 1 shell command (ctrl+o to expand)
+
+⏺ Сейчас обновлю lib/content.ts: добавлю укороченный текст подписки для
+  мобильной версии и ссылку на карту у самовывоза.
+
+⏺ Bash(python3 - <<'EOF'
+      p='lib/content.ts'…)
+  ⎿  55:- Текст: 2 пачки по 250 г раз в месяц. Оставьте заявку: менеджер пе
+     резвонит и всё оформит. Корзина и оплата онлайн не нужны. (моб.: Остав
+     ьте заявку: менеджер перезвонит и всё оформит.)
+  ⎿  Updated design/content.md (+1 -1)
+      52  
+      53  - Метка: Подписка
+      54  - H2: Две пачки в месяц, доставка бесплатно
+      55 -- Текст: 2 пачки по 250 г раз в месяц. Оставьте заявку: менедже
+         -р перезвонит и всё оформит. Корзина и оплата онлайн не нужны.  
+      55 +- Текст: 2 пачки по 250 г раз в месяц. Оставьте заявку: менедже
+         +р перезвонит и всё оформит. Корзина и оплата онлайн не нужны. (
+         +моб.: Оставьте заявку: менеджер перезвонит и всё оформит.)     
+      56  - Ценник: 54 BYN / мес · 2 пачки по 250 г
+      57  - CTA: Хочу подписку → #order, интерес «Подписка»
+      58  - Фото 6 alt: Две крафтовые пачки кофе и открытая коробка на ку
+          хонном столе
+  ⎿  Updated lib/content.ts (+5 -2)
+      228  export const subscription = {
+      229    tag: "Подписка",
+      230    title: "Две пачки в месяц, доставка бесплатно",
+      231 -  text: `2 пачки по ${PACK} раз в месяц. Оставьте заявку: мене
+          -джер перезвонит и всё оформит. Корзина и оплата онлайн не нужн
+          -ы.`,                                                          
+      231 +  text: {                                                     
+      232 +    full: `2 пачки по ${PACK} раз в месяц. Оставьте заявку: ме
+          +неджер перезвонит и всё оформит. Корзина и оплата онлайн не ну
+          +жны.`,                                                        
+      233 +    short: "Оставьте заявку: менеджер перезвонит и всё оформит
+          +.",                                                           
+      234 +  },                                                          
+      235    price: SUBSCRIPTION_PRICE,
+      236    priceLabel: subscriptionPrice,
+      237    priceNote: `2 пачки по ${PACK}`,
+     ...
+      248          `По Минску в пятницу. От ${formatPrice(FREE_DELIVERY_F
+           ROM)} бесплатно.`,
+      249        ],
+      250      },
+      248 -    { title: "Самовывоз", lines: [business.address] },        
+      251 +    { title: "Самовывоз", lines: [business.address], href: bus
+          +iness.mapUrl },                                               
+      252      { title: "Часы", lines: business.hours.map((h) => h.label)
+            },
+      253    ],
+      254    photo: photos.shop,
+
+⏺ Контент обновлён. Теперь пишу секцию «Кофе».
+
+⏺ Write(components/sections/Coffee.tsx)
+  ⎿  Wrote 87 lines to components/sections/Coffee.tsx
+       1 import { ButtonLink } from "@/components/ui/Button";
+       2 import { Card, type CardTone } from "@/components/ui/Card";
+       3 import { Label, type LabelTone } from "@/components/ui/Label";
+       4 import { cn } from "@/lib/cn";
+       5 import { coffee, CURRENCY, ORDER_HREF } from "@/lib/content";
+       6 
+       7 // Цвет метки и фон этикетки по порядку карточек, как в макете
+       8 const LABEL_STYLES: { tag: LabelTone; card: CardTone }[] = [
+       9   { tag: "orange", card: "kraft" },
+      10   { tag: "gold", card: "kraft" },
+     … +89 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/sections/Coffee.tsx'…)
+  ⎿  Updated components/sections/Coffee.tsx (+6 -7)
+      1  import { ButtonLink } from "@/components/ui/Button";
+      2  import { Card, type CardTone } from "@/components/ui/Card";
+      3  import { Label, type LabelTone } from "@/components/ui/Label";
+      4 -import { cn } from "@/lib/cn";                                  
+      4 +import { ShortFull } from "@/components/ui/ShortFull";          
+      5  import { coffee, CURRENCY, ORDER_HREF } from "@/lib/content";
+      6  
+      7  // Цвет метки и фон этикетки по порядку карточек, как в макете
+     ...
+      49                <h3 className="mt-3 font-display text-[1.875rem] 
+          leading-none font-bold tracking-[0.02em] uppercase md:mt-6 lg:t
+          ext-[2.5rem]">
+      50                  {item.name}
+      51                </h3>
+      52 -              <p className="mt-3 text-base leading-snug lg:mt-4
+         - lg:text-[1.0625rem]">                                         
+      52 +              <p className="mt-3 text-base leading-snug md:mb-6
+         + lg:mt-4 lg:text-[1.0625rem]">                                 
+      53                  {"notesShort" in item ? (
+      54 -                  <>                                           
+      55 -                    <span className="md:hidden">{item.notesShor
+         -t}</span>                                                      
+      56 -                    <span className="hidden md:inline">{item.no
+         -tes}</span>                                                    
+      57 -                  </>                                          
+      54 +                  <ShortFull                                   
+      55 +                    text={{ full: item.notes, short: item.notes
+         +Short }}                                                       
+      56 +                  />                                           
+      57                  ) : (
+      58                    item.notes
+      59                  )}
+     ...
+      71                    href={ORDER_HREF}
+      72                    variant="dark"
+      73                    size="sm"
+      75 -                  className={cn("shrink-0 px-6")}              
+      74 +                  className="shrink-0 px-6"                    
+      75                  >
+      76                    {coffee.orderLabel}
+      77                    <span className="sr-only">: {item.name}</span
+          >
+
+⏺ Теперь «Подписка».
+
+⏺ Write(components/sections/Subscription.tsx)
+  ⎿  Wrote 68 lines to components/sections/Subscription.tsx
+      1 import { ButtonLink } from "@/components/ui/Button";
+      2 import { Card } from "@/components/ui/Card";
+      3 import { Photo } from "@/components/ui/Photo";
+      4 import { ShortFull } from "@/components/ui/ShortFull";
+      5 import { CURRENCY, ORDER_HREF, subscription } from "@/lib/content
+      6 
+      7 // Две колонки с lg: 502 px в контейнере 1280, иначе ~40vw
+      8 const PHOTO_SIZES =
+      9   "(min-width: 1280px) 502px, (min-width: 1024px) 40vw, calc(100v
+        w - 40px)";
+     … +66 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='lib/content.ts'…)
+  ⎿  45:                {subscription.priceUnit}
+  ⎿  Updated components/sections/Subscription.tsx (+2 -2)
+      2  import { Card } from "@/components/ui/Card";
+      3  import { Photo } from "@/components/ui/Photo";
+      4  import { ShortFull } from "@/components/ui/ShortFull";
+      5 -import { CURRENCY, ORDER_HREF, subscription } from "@/lib/conten
+        -t";                                                             
+      5 +import { ORDER_HREF, subscription } from "@/lib/content";       
+      6  
+      7  // Две колонки с lg: 502 px в контейнере 1280, иначе ~40vw
+      8  const PHOTO_SIZES =
+     ...
+      42                  {subscription.price}
+      43                </span>{" "}
+      44                <span className="ml-1.5 text-xl lg:text-2xl">
+      45 -                {CURRENCY} / мес                               
+      45 +                {subscription.priceUnit}                       
+      46                </span>
+      47              </p>
+      48              <p className="mt-1.5 text-sm">{subscription.priceNo
+          te}</p>
+  ⎿  Updated lib/content.ts (+3 -1)
+      223    photo: photos.founders,
+      224  } as const;
+      225  
+      226 -const subscriptionPrice = `${formatPrice(SUBSCRIPTION_PRICE)} 
+          -/ мес`;                                                       
+      226 +const PER_MONTH = "/ мес";                                    
+      227 +const subscriptionPrice = `${formatPrice(SUBSCRIPTION_PRICE)} 
+          +${PER_MONTH}`;                                                
+      228  
+      229  export const subscription = {
+      230    tag: "Подписка",
+     ...
+      235    },
+      236    price: SUBSCRIPTION_PRICE,
+      237    priceLabel: subscriptionPrice,
+      238 +  priceUnit: `${CURRENCY} ${PER_MONTH}`,                      
+      239    priceNote: `2 пачки по ${PACK}`,
+      240    cta: { label: "Хочу подписку", interest: "subscription" },
+      241    photo: photos.subscription,
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/sections/Subscription.tsx'…)
+  ⎿  Updated components/sections/Subscription.tsx (+2 -1)
+      40              <p className="font-display leading-none font-bold u
+          ppercase">
+      41                <span className="text-5xl lg:text-[3.5rem]">
+      42                  {subscription.price}
+      43 -              </span>{" "}                                     
+      43 +              </span>                                          
+      44 +              {"\u00A0"}                                       
+      45                <span className="ml-1.5 text-xl lg:text-2xl">
+      46                  {subscription.priceUnit}
+      47                </span>
+
+⏺ Теперь секция «Заказ» (фото, доставка, часы и место под форму шага 8) и
+  подвал.
+
+⏺ Write(components/sections/Order.tsx)
+  ⎿  Wrote 72 lines to components/sections/Order.tsx
+       1 import { Card } from "@/components/ui/Card";
+       2 import { Photo } from "@/components/ui/Photo";
+       3 import { order } from "@/lib/content";
+       5 // Левая колонка с lg: 538 px в контейнере 1280, иначе ~43vw
+       6 const PHOTO_SIZES =
+       7   "(min-width: 1280px) 538px, (min-width: 1024px) 43vw, calc(100
+         vw - 40px)";
+       9 // id="lead-form" – по нему мобильная плашка понимает, что форма
+          на экране
+      10 export const LEAD_FORM_ID = "lead-form";
+     … +69 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/sections/Order.tsx'…)
+  ⎿        <div className="mt-8 lg:mt-9">
+             <Photo
+               photo={order.photo}
+     … +35 lines (ctrl+o to expand)
+  ⎿  Updated components/sections/Order.tsx (+11 -16)
+       1  import { Card } from "@/components/ui/Card";
+       2  import { Photo } from "@/components/ui/Photo";
+       3 -import { order } from "@/lib/content";                         
+       3 +import { LEAD_FORM_ID, order } from "@/lib/content";           
+       4  
+       5  // Левая колонка с lg: 538 px в контейнере 1280, иначе ~43vw
+       6  const PHOTO_SIZES =
+       7    "(min-width: 1280px) 538px, (min-width: 1024px) 43vw, calc(10
+          0vw - 40px)";
+       8  
+       9 -// id="lead-form" – по нему мобильная плашка понимает, что форм
+         -а на экране                                                    
+      10 -export const LEAD_FORM_ID = "lead-form";                       
+      11 -                                                               
+       9  export function Order() {
+      10    return (
+      11      <section
+     ...
+      39            {order.info.map((item) => (
+      40              <div
+      41                key={item.title}
+      45 -              className="border-t-3 border-ink pt-3 pb-5 lg:pt-
+         -5 lg:pb-6"                                                     
+      42 +              className="border-t-3 border-ink pt-3 pb-5 lg:pt-
+         +5 lg:pb-6 [&>dt+dd]:mt-1.5"                                    
+      43              >
+      44                <dt className="type-label">{item.title}</dt>
+      48 -              {item.lines.map((line) =>                        
+      49 -                "href" in item ? (                             
+      50 -                  <dd key={line} className="mt-1.5">           
+      45 +              {item.lines.map((line) => (                      
+      46 +                <dd key={line}>                                
+      47 +                  {"href" in item ? (                          
+      48                      <a
+      49                        href={item.href}
+      50                        target="_blank"
+      51                        rel="noopener noreferrer"
+      55 -                      className="underline-offset-4 hover:under
+         -line"                                                          
+      52 +                      className="underline decoration-2 underli
+         +ne-offset-4 hover:decoration-orange"                           
+      53                      >
+      54                        {line}
+      55                      </a>
+      59 -                  </dd>                                        
+      60 -                ) : (                                          
+      61 -                  <dd key={line} className="mt-1.5 first-of-typ
+         -e:mt-1.5">                                                     
+     … 12 more lines (ctrl+o to expand)
+  ⎿  Updated lib/content.ts (+2 -0)
+      103  export type Photo = (typeof photos)[keyof typeof photos];
+      104  
+      105  export const ORDER_HREF = "#order";
+      106 +// По нему мобильная плашка понимает, что форма на экране     
+      107 +export const LEAD_FORM_ID = "lead-form";                      
+      108  
+      109  export const nav = {
+      110    logo: business.name,
+
+⏺ Footer и мобильная плашка.
+
+⏺ Write(components/sections/Footer.tsx)
+  ⎿  Wrote 42 lines to components/sections/Footer.tsx
+       1 import { business, footer } from "@/lib/content";
+       2 
+       3 const EXTERNAL = { target: "_blank", rel: "noopener noreferrer" 
+       4 const LINK = "underline-offset-4 hover:underline";
+       5 
+       6 // На мобильной снизу запас под плашку MobileBar с учётом safe-a
+         rea
+       8   return (
+       9     <footer
+      10       id="footer"
+     … +41 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/sections/Footer.tsx'…)
+  ⎿  ```text
+     kvarta/
+     ├─ app/
+     … +19 lines (ctrl+o to expand)
+  ⎿  Updated components/sections/Footer.tsx (+1 -1)
+      23            </p>
+      24            <a
+      25              href={footer.instagram.href}
+      26 -            className={`self-start text-base underline underlin
+         -e-offset-4 md:self-auto ${LINK}`}                              
+      26 +            className="self-start text-base underline underline
+         +-offset-4 md:self-auto"                                        
+      27              {...EXTERNAL}
+      28            >
+      29              {footer.instagram.label}
+
+⏺ Bash(rmdir components/layout && mv components/sections/Coffee.tsx
+      components/sections/Catalog.tsx && sed -i '' 's/export function
+      Coffee()/export function Catalog()/…)
+  ⎿  15:export function Catalog() {
+  ⎿  Created components/sections/Catalog.tsx (+86 -0)
+       1 +import { ButtonLink } from "@/components/ui/Button";           
+       2 +import { Card, type CardTone } from "@/components/ui/Card";    
+       3 +import { Label, type LabelTone } from "@/components/ui/Label"; 
+       4 +import { ShortFull } from "@/components/ui/ShortFull";         
+       5 +import { coffee, CURRENCY, ORDER_HREF } from "@/lib/content";  
+       6 +                                                               
+       7 +// Цвет метки и фон этикетки по порядку карточек, как в макете 
+       8 +const LABEL_STYLES: { tag: LabelTone; card: CardTone }[] = [   
+       9 +  { tag: "orange", card: "kraft" },                            
+      10 +  { tag: "gold", card: "kraft" },                              
+      11 +  { tag: "brown", card: "kraft" },                             
+      12 +  { tag: "ink", card: "paper" },                               
+      13 +];                                                             
+      14 +                                                               
+      15 +export function Catalog() {                                    
+      16 +  return (                                                     
+      17 +    <section                                                   
+      18 +      id="coffee"                                              
+      19 +      aria-labelledby="coffee-title"                           
+      20 +      className="container-page py-12 lg:py-22"                
+      21 +    >                                                          
+      22 +      <div className="flex flex-col gap-2 lg:flex-row lg:items-
+         +end lg:justify-between lg:gap-8">                              
+      23 +        <h2 id="coffee-title" className="type-h2">             
+      24 +          {coffee.title}                                       
+      25 +        </h2>                                                  
+      26 +        <p className="type-label lg:pb-1">{coffee.subtitle}</p>
+      27 +      </div>                                                   
+      28 +                                                               
+      29 +      <ul className="mt-6 grid gap-4 md:grid-cols-2 md:gap-5 lg
+         +:mt-10 lg:grid-cols-4">                                        
+      30 +        {coffee.items.map((item, index) => {                   
+      31 +          const style = LABEL_STYLES[index % LABEL_STYLES.lengt
+         +h];                                                            
+      32 +                                                               
+      33 +          return (                                             
+      34 +            <Card                                              
+      35 +              key={item.number}                                
+      36 +              as="li"                                          
+      37 +              tone={style.card}                                
+      38 +              className="flex flex-col p-5 lg:p-6"             
+      39 +            >                                                  
+      40 +              <div className="flex items-center justify-between
+         + gap-3">                                                       
+     … 46 more lines (ctrl+o to expand)
+  ⎿  Deleted components/sections/Coffee.tsx (+0 -86)
+       1 -import { ButtonLink } from "@/components/ui/Button";           
+       2 -import { Card, type CardTone } from "@/components/ui/Card";    
+       3 -import { Label, type LabelTone } from "@/components/ui/Label"; 
+       4 -import { ShortFull } from "@/components/ui/ShortFull";         
+       5 -import { coffee, CURRENCY, ORDER_HREF } from "@/lib/content";  
+       6 -                                                               
+       7 -// Цвет метки и фон этикетки по порядку карточек, как в макете 
+       8 -const LABEL_STYLES: { tag: LabelTone; card: CardTone }[] = [   
+       9 -  { tag: "orange", card: "kraft" },                            
+      10 -  { tag: "gold", card: "kraft" },                              
+      11 -  { tag: "brown", card: "kraft" },                             
+      12 -  { tag: "ink", card: "paper" },                               
+      13 -];                                                             
+      14 -                                                               
+      15 -export function Coffee() {                                     
+      16 -  return (                                                     
+      17 -    <section                                                   
+      18 -      id="coffee"                                              
+      19 -      aria-labelledby="coffee-title"                           
+      20 -      className="container-page py-12 lg:py-22"                
+      21 -    >                                                          
+      22 -      <div className="flex flex-col gap-2 lg:flex-row lg:items-
+         -end lg:justify-between lg:gap-8">                              
+      23 -        <h2 id="coffee-title" className="type-h2">             
+      24 -          {coffee.title}                                       
+      25 -        </h2>                                                  
+      26 -        <p className="type-label lg:pb-1">{coffee.subtitle}</p>
+      27 -      </div>                                                   
+      28 -                                                               
+      29 -      <ul className="mt-6 grid gap-4 md:grid-cols-2 md:gap-5 lg
+         -:mt-10 lg:grid-cols-4">                                        
+      30 -        {coffee.items.map((item, index) => {                   
+      31 -          const style = LABEL_STYLES[index % LABEL_STYLES.lengt
+         -h];                                                            
+      32 -                                                               
+      33 -          return (                                             
+      34 -            <Card                                              
+      35 -              key={item.number}                                
+      36 -              as="li"                                          
+      37 -              tone={style.card}                                
+      38 -              className="flex flex-col p-5 lg:p-6"             
+      39 -            >                                                  
+      40 -              <div className="flex items-center justify-between
+         - gap-3">                                                       
+     … 46 more lines (ctrl+o to expand)
+
+⏺ Write(components/MobileBar.tsx)
+  ⎿  Wrote 60 lines to components/MobileBar.tsx
+       1 "use client";
+       2 
+       4 import { ButtonLink } from "@/components/ui/Button";
+       5 import { cn } from "@/lib/cn";
+       6 import { LEAD_FORM_ID, mobileBar, ORDER_HREF } from "@/lib/conte
+       7 
+       8 // Нижняя плашка < md: появляется, когда hero ушёл вверх за экра
+         н,
+         .
+      10 export function MobileBar() {
+     … +58 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/MobileBar.tsx'…)
+  ⎿  OK
+  ⎿  Updated app/page.tsx (+10 -1)
+       1 +import { MobileBar } from "@/components/MobileBar";            
+       2 +import { Catalog } from "@/components/sections/Catalog";       
+       3 +import { Footer } from "@/components/sections/Footer";         
+       4  import { Founders } from "@/components/sections/Founders";
+       5  import { Freshness } from "@/components/sections/Freshness";
+       6  import { Header } from "@/components/sections/Header";
+       7  import { Hero } from "@/components/sections/Hero";
+       8 +import { Order } from "@/components/sections/Order";           
+       9 +import { Subscription } from "@/components/sections/Subscriptio
+         +n";                                                            
+      10  
+       6 -// Секции 05–08 (Кофе, Подписка, Заказ, Footer) – шаг 5        
+      11  export default function Home() {
+      12    return (
+      13      <>
+     ...
+      16          <Hero />
+      17          <Freshness />
+      18          <Founders />
+      19 +        <Catalog />                                            
+      20 +        <Subscription />                                       
+      21 +        <Order />                                              
+      22        </main>
+      23 +      <Footer />                                               
+      24 +      <MobileBar />                                            
+      25      </>
+      26    );
+      27  }
+  ⎿  Updated components/MobileBar.tsx (+1 -1)
+      51              {mobileBar.price}
+      52            </span>
+      53          </p>
+      54 -        <ButtonLink href={ORDER_HREF} className="min-h-14 px-7 
+         -text-xl">                                                      
+      54 +        <ButtonLink href={ORDER_HREF} size="lg">               
+      55            {mobileBar.cta}
+      56          </ButtonLink>
+      57        </div>
+  ⎿  Updated components/sections/Catalog.tsx (+1 -1)
+      71                    href={ORDER_HREF}
+      72                    variant="dark"
+      73                    size="sm"
+      74 -                  className="shrink-0 px-6"                    
+      74 +                  className="shrink-0"                         
+      75                  >
+      76                    {coffee.orderLabel}
+      77                    <span className="sr-only">: {item.name}</span
+          >
+
+⏺ Lint и typecheck зелёные. Запускаю dev-сервер и снимаю скриншоты секций для
+  сверки с макетом.
+  Read 2 files, ran 1 shell command (ctrl+o to expand)
+
+⏺ Каталог совпадает с макетом. Смотрю подписку.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/sections/Subscription.tsx'…)
+  ⎿  Updated components/sections/Subscription.tsx (+3 -3)
+       4  import { ShortFull } from "@/components/ui/ShortFull";
+       5  import { ORDER_HREF, subscription } from "@/lib/content";
+       6  
+       7 -// Две колонки с lg: 502 px в контейнере 1280, иначе ~40vw     
+       7 +// Фото с lg – колонка 504 px, иначе ~40vw                     
+       8  const PHOTO_SIZES =
+       9    "(min-width: 1280px) 502px, (min-width: 1024px) 40vw, calc(10
+          0vw - 40px)";
+      10  
+     ...
+      16        aria-labelledby="subscription-title"
+      17        className="bg-orange py-12 text-ink lg:py-22"
+      18      >
+      19 -      <div className="container-page grid gap-x-16 lg:grid-cols
+         --[1.15fr_1fr] lg:grid-rows-[auto_1fr]">                        
+      19 +      <div className="container-page grid gap-x-14 lg:grid-cols
+         +-[1fr_minmax(0,31.5rem)] lg:grid-rows-[auto_1fr]">             
+      20          <div className="lg:self-end">
+      21            <p className="type-label">{subscription.tag}</p>
+      22            <h2 id="subscription-title" className="type-h2 mt-5 l
+          g:mt-7">
+     ...
+      24            </h2>
+      25          </div>
+      26  
+      27 -        <div className="relative mt-6 mr-2 mb-10 lg:col-start-2
+         - lg:row-span-2 lg:row-start-1 lg:my-0 lg:mr-4 lg:self-center"> 
+      27 +        <div className="relative mt-6 mr-2 mb-16 lg:col-start-2
+         + lg:row-span-2 lg:row-start-1 lg:my-0 lg:mr-0 lg:self-center"> 
+      28            <Photo
+      29              photo={subscription.photo}
+      30              sizes={PHOTO_SIZES}
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/sections/Subscription.tsx'…)
+  ⎿  Updated components/sections/Subscription.tsx (+2 -3)
+       4  import { ShortFull } from "@/components/ui/ShortFull";
+       5  import { ORDER_HREF, subscription } from "@/lib/content";
+       6  
+       7 -// Фото с lg – колонка 504 px, иначе ~40vw                     
+       8 -const PHOTO_SIZES =                                            
+       9 -  "(min-width: 1280px) 502px, (min-width: 1024px) 40vw, calc(10
+         -0vw - 40px)";                                                  
+       7 +// С lg фото в колонке фиксированной ширины 504 px             
+       8 +const PHOTO_SIZES = "(min-width: 1024px) 504px, calc(100vw - 40
+         +px)";                                                          
+       9  
+      10  // Оранжевая полоса: весь мелкий текст – ink (белый на orange т
+          олько крупным)
+      11  export function Subscription() {
+
+  Read 4 files (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/sections/Footer.tsx'…)
+  ⎿  top: false
+     founders: true
+     form: false
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated components/sections/Footer.tsx (+3 -2)
+      1  import { business, footer } from "@/lib/content";
+      2  
+      3  const EXTERNAL = { target: "_blank", rel: "noopener noreferrer" 
+         } as const;
+      4 -const LINK = "underline-offset-4 hover:underline";              
+      4 +// py-1 – цель касания не меньше 24 px                          
+      5 +const LINK = "py-1 underline-offset-4 hover:underline";         
+      6  
+      7  // На мобильной снизу запас под плашку MobileBar с учётом safe-a
+         rea
+      8  export function Footer() {
+     ...
+      24            </p>
+      25            <a
+      26              href={footer.instagram.href}
+      26 -            className="self-start text-base underline underline
+         --offset-4 md:self-auto"                                        
+      27 +            className="self-start py-1 text-base underline unde
+         +rline-offset-4 md:self-auto"                                   
+      28              {...EXTERNAL}
+      29            >
+      30              {footer.instagram.label}
+
+⏺ Баннер работает согласно ТЗ: скрыт на первом экране, появляется после
+  hero-блока, прячется у формы, на десктопе отсутствует. Теперь перепроверю
+  подписку и горизонтальный скролл на ширине 390.
+
+  Read 2 files, ran 1 shell command (ctrl+o to expand)
+
+⏺ Вёрстка совпадает с макетом, кроме одного нюанса: заголовок подписки на
+  десктопе разбивается на три строки вместо двух из-за letter-spacing и более
+  узкой колонки — оставляю как есть. Запускаю проверки и сборку.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Всё зелёное, страница статическая (○). Коммичу по частям.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Пушу и готовлю описание PR по шаблону.
+
+⏺ Skill(pr-description-etacar)
+  ⎿  Successfully loaded skill
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Репозиторий требует использовать свой шаблон PR, а CLAUDE.md проекта поручает
+  открытие PR мне, поэтому я оформлю PR по правилам проекта, а не по общему
+  шаблону из навыка.
+
+  Created PR #7 (ctrl+o to expand)
+
+⏺ Шаг 5 готов, PR открыт: https://github.com/ahahaharu/kvarta-landing/pull/7.
+  Ветка feat/sections-bottom, 7 коммитов. Lint, typecheck и тесты прошли, сборка
+  зелёная, страница по-прежнему статическая (○). Горизонтального скролла на 390
+  px нет.
+
+  Что сделано
+  - Кофе (Catalog.tsx, имя файла как в структуре ТЗ): четыре карточки-этикетки.
+    У кнопок «Заказать» есть скрытое название сорта, чтобы скринридер не читал
+    четыре одинаковые ссылки.
+  - Подписка: оранжевый блок, фото и ценник 54 BYN / МЕС. На мобильной текст
+    короче, как на скриншоте. В design/content.md пометки «моб.» для этого
+    текста не было, я её добавил.
+  - Заказ: фото мастерской, доставка, самовывоз и часы. Адрес самовывоза —
+    ссылка на Яндекс Карты. Сама форма будет на шаге 8, пока на её месте белая
+    карточка с id="lead-form".
+  - Подвал: всё из макета плюс то, чего в макете нет, но требует ТЗ: ссылка на
+    политику и пометка «Учебный проект, клиент вымышленный». Страницы /privacy
+    пока нет (шаг 11), до тех пор эта ссылка ведёт на 404.
+  - Мобильная плашка (только < 768 px): прогнал скриптом в Playwright. Наверху
+    её нет, после hero она появляется, у формы прячется, над подвалом снова
+    видна. На 1024 px её нет. Скрытая плашка не получает фокус с клавиатуры.
+
+  Отличие от макета: на 1440 px заголовок подписки разбит на три строки, а не на
+  две. Колонке не хватает примерно 20 px из-за межбуквенного интервала из
+  токенов.
+
+  Где я отступил от процесса:
+  - Чтобы составить описание PR, я вызвал твой навык pr-description-etacar. Он
+    запрещает запускать git и gh pr create и задаёт другой шаблон. Я поступил по
+    CLAUDE.md проекта: сам запушил ветку, открыл PR и написал описание по
+    шаблону репозитория, как в PR #6.
+  - Ветку feat/sections-top я удалил локально без вопроса. Её PR #6 уже был
+    смержен.
+
+  Скриншоты в PR вставь сам: .shots/{coffee,subscription,order,footer}-390.png.
+  По ТЗ после шага 5 положено запустить агента design-qa. Если нужно, запущу его
+  на секции coffee, subscription, order и footer.
+
+✻ Cooked for 12m 51s · done Thursday 9:03 PM
+
+❯ вообще не активируй скилл /pr-description-etacar - он из другого проекта, а   
+  используй шаблон из pull_request_template.md. можешь, если хочешь, создать    
+  отдельный скилл чисто под этот проект                                         
+
+  Read 1 file, wrote 2 memories (ctrl+o to expand)
+
+⏺ Понял. Запомнил для этого проекта: скилл pr-description-etacar не трогаю,
+  описание PR пишу по .github/pull_request_template.md. PR #7 уже сделан по
+  этому шаблону, переделывать не нужно.
+
+  Отдельный скилл создавать не стал. Шаблон уже лежит в репозитории, а примеры
+  заполнения есть в PR #6 и #7. Скилл почти не добавил бы ничего нового, а его
+  описание висело бы в контексте каждой сессии. Ещё он попал бы коммитом в
+  .claude/skills/, то есть либо в PR #7 не по теме, либо в отдельную ветку.
+
+  Если хочешь закрепить правило не только в моей памяти, но и в репозитории,
+  достаточно одной строки в CLAUDE.md, в разделе «Как работаем»: «Описание PR –
+  по .github/pull_request_template.md». Могу добавить её отдельным маленьким PR
+  docs/claude-md.
+
+✻ Brewed for 46s · done Thursday 9:39 PM
+
+❯ напиши и можешь сделать прямой коммит, без пр                                 
+
+⏺ Bash(git checkout -q main && git pull -q --ff-only && grep -n "gh pr create"
+      CLAUDE.md)
+  ⎿  26:- Пользователь пишет «шаг N» → найди строку N в таблице «План веток
+     » (`docs/SPEC.md`, раздел 12), прочитай связанные разделы ТЗ, создай в
+     етку из свежего `main`, сделай шаг, закоммить по-частям (Conventional
+     Commits на английском), запушь и открой PR через `gh pr create`.
+  ⎿  Updated app/page.tsx (+1 -10)
+       1 -import { MobileBar } from "@/components/MobileBar";            
+       2 -import { Catalog } from "@/components/sections/Catalog";       
+       3 -import { Footer } from "@/components/sections/Footer";         
+       1  import { Founders } from "@/components/sections/Founders";
+       2  import { Freshness } from "@/components/sections/Freshness";
+       3  import { Header } from "@/components/sections/Header";
+       4  import { Hero } from "@/components/sections/Hero";
+       8 -import { Order } from "@/components/sections/Order";           
+       9 -import { Subscription } from "@/components/sections/Subscriptio
+         -n";                                                            
+       5  
+       6 +// Секции 05–08 (Кофе, Подписка, Заказ, Footer) – шаг 5        
+       7  export default function Home() {
+       8    return (
+       9      <>
+     ...
+      12          <Hero />
+      13          <Freshness />
+      14          <Founders />
+      19 -        <Catalog />                                            
+      20 -        <Subscription />                                       
+      21 -        <Order />                                              
+      15        </main>
+      23 -      <Footer />                                               
+      24 -      <MobileBar />                                            
+      16      </>
+      17    );
+      18  }
+  ⎿  Deleted components/MobileBar.tsx (+0 -60)
+       1 -"use client";                                                  
+       2 -                                                               
+       3 -import { useEffect, useState } from "react";                   
+       4 -import { ButtonLink } from "@/components/ui/Button";           
+       5 -import { cn } from "@/lib/cn";                                 
+       6 -import { LEAD_FORM_ID, mobileBar, ORDER_HREF } from "@/lib/cont
+         -ent";                                                          
+       7 -                                                               
+       8 -// Нижняя плашка < md: появляется, когда hero ушёл вверх за экр
+         -ан,                                                            
+       9 -// и прячется, пока форма заявки в зоне видимости (ТЗ, раздел 4
+         -).                                                             
+      10 -export function MobileBar() {                                  
+      11 -  const [heroPassed, setHeroPassed] = useState(false);         
+      12 -  const [formVisible, setFormVisible] = useState(false);       
+      13 -                                                               
+      14 -  useEffect(() => {                                            
+      15 -    const hero = document.getElementById("hero");              
+      16 -    const form = document.getElementById(LEAD_FORM_ID);        
+      17 -    if (!hero || !form) return;                                
+      18 -                                                               
+      19 -    const observer = new IntersectionObserver((entries) => {   
+      20 -      for (const entry of entries) {                           
+      21 -        if (entry.target === hero) {                           
+      22 -          setHeroPassed(                                       
+      23 -            !entry.isIntersecting && entry.boundingClientRect.t
+         -op < 0,                                                        
+      24 -          );                                                   
+      25 -        } else {                                               
+      26 -          setFormVisible(entry.isIntersecting);                
+      27 -        }                                                      
+      28 -      }                                                        
+      29 -    });                                                        
+      30 -    observer.observe(hero);                                    
+      31 -    observer.observe(form);                                    
+      32 -    return () => observer.disconnect();                        
+      33 -  }, []);                                                      
+      34 -                                                               
+      35 -  const visible = heroPassed && !formVisible;                  
+      36 -                                                               
+      37 -  // Скрытая плашка – invisible + inert: не ловит фокус и не чи
+         -тается                                                         
+      38 -  return (                                                     
+      39 -    <div                                                       
+      40 -      inert={!visible}                                         
+     … 20 more lines (ctrl+o to expand)
+  ⎿  Deleted components/sections/Catalog.tsx (+0 -86)
+       1 -import { ButtonLink } from "@/components/ui/Button";           
+       2 -import { Card, type CardTone } from "@/components/ui/Card";    
+       3 -import { Label, type LabelTone } from "@/components/ui/Label"; 
+       4 -import { ShortFull } from "@/components/ui/ShortFull";         
+       5 -import { coffee, CURRENCY, ORDER_HREF } from "@/lib/content";  
+       6 -                                                               
+       7 -// Цвет метки и фон этикетки по порядку карточек, как в макете 
+       8 -const LABEL_STYLES: { tag: LabelTone; card: CardTone }[] = [   
+       9 -  { tag: "orange", card: "kraft" },                            
+      10 -  { tag: "gold", card: "kraft" },                              
+      11 -  { tag: "brown", card: "kraft" },                             
+      12 -  { tag: "ink", card: "paper" },                               
+      13 -];                                                             
+      14 -                                                               
+      15 -export function Catalog() {                                    
+      16 -  return (                                                     
+      17 -    <section                                                   
+      18 -      id="coffee"                                              
+      19 -      aria-labelledby="coffee-title"                           
+      20 -      className="container-page py-12 lg:py-22"                
+      21 -    >                                                          
+      22 -      <div className="flex flex-col gap-2 lg:flex-row lg:items-
+         -end lg:justify-between lg:gap-8">                              
+      23 -        <h2 id="coffee-title" className="type-h2">             
+      24 -          {coffee.title}                                       
+      25 -        </h2>                                                  
+      26 -        <p className="type-label lg:pb-1">{coffee.subtitle}</p>
+      27 -      </div>                                                   
+      28 -                                                               
+      29 -      <ul className="mt-6 grid gap-4 md:grid-cols-2 md:gap-5 lg
+         -:mt-10 lg:grid-cols-4">                                        
+      30 -        {coffee.items.map((item, index) => {                   
+      31 -          const style = LABEL_STYLES[index % LABEL_STYLES.lengt
+         -h];                                                            
+      32 -                                                               
+      33 -          return (                                             
+      34 -            <Card                                              
+      35 -              key={item.number}                                
+      36 -              as="li"                                          
+      37 -              tone={style.card}                                
+      38 -              className="flex flex-col p-5 lg:p-6"             
+      39 -            >                                                  
+      40 -              <div className="flex items-center justify-between
+         - gap-3">                                                       
+     … 46 more lines (ctrl+o to expand)
+  ⎿  Deleted components/sections/Footer.tsx (+0 -43)
+       1 -import { business, footer } from "@/lib/content";              
+       2 -                                                               
+       3 -const EXTERNAL = { target: "_blank", rel: "noopener noreferrer"
+         - } as const;                                                   
+       4 -// py-1 – цель касания не меньше 24 px                         
+       5 -const LINK = "py-1 underline-offset-4 hover:underline";        
+       6 -                                                               
+       7 -// На мобильной снизу запас под плашку MobileBar с учётом safe-
+         -area                                                           
+       8 -export function Footer() {                                     
+       9 -  return (                                                     
+      10 -    <footer                                                    
+      11 -      id="footer"                                              
+      12 -      className="bg-ink pt-10 pb-[calc(7rem+env(safe-area-inset
+         --bottom))] text-paper [--focus-ring:var(--color-paper)] md:pb-1
+         -0 lg:py-9"                                                     
+      13 -    >                                                          
+      14 -      <div className="container-page">                         
+      15 -        <div className="flex flex-col gap-2 md:flex-row md:item
+         -s-center md:justify-between md:gap-8">                         
+      16 -          <p className="font-display text-[1.75rem] leading-non
+         -e font-bold tracking-[0.04em] uppercase">                      
+      17 -            {footer.logo}                                      
+      18 -          </p>                                                 
+      19 -          <p className="mt-2 text-base md:mt-0">               
+      20 -            <a href={business.mapUrl} className={LINK} {...EXTE
+         -RNAL}>                                                         
+      21 -              {footer.address}                                 
+      22 -            </a>{" "}                                          
+      23 -            · {footer.since}                                   
+      24 -          </p>                                                 
+      25 -          <a                                                   
+      26 -            href={footer.instagram.href}                       
+      27 -            className="self-start py-1 text-base underline unde
+         -rline-offset-4 md:self-auto"                                   
+      28 -            {...EXTERNAL}                                      
+      29 -          >                                                    
+      30 -            {footer.instagram.label}                           
+      31 -          </a>                                                 
+      32 -        </div>                                                 
+      33 -                                                               
+      34 -        <div className="mt-8 flex flex-col gap-2 border-t-2 bor
+         -der-dashed border-paper/40 pt-5 text-sm text-paper/70 md:flex-r
+         -ow md:justify-between md:gap-8 lg:mt-7">                       
+      35 -          <a href={footer.privacy.href} className={`self-start 
+         -${LINK}`}>                                                     
+      36 -            {footer.privacy.label}                             
+      37 -          </a>                                                 
+      38 -          <p>{footer.disclaimer}</p>                           
+      39 -        </div>                                                 
+      40 -      </div>                                                   
+     … 3 more lines (ctrl+o to expand)
+  ⎿  Deleted components/sections/Order.tsx (+0 -67)
+       1 -import { Card } from "@/components/ui/Card";                   
+       2 -import { Photo } from "@/components/ui/Photo";                 
+       3 -import { LEAD_FORM_ID, order } from "@/lib/content";           
+       4 -                                                               
+       5 -// Левая колонка с lg: 538 px в контейнере 1280, иначе ~43vw   
+       6 -const PHOTO_SIZES =                                            
+       7 -  "(min-width: 1280px) 538px, (min-width: 1024px) 43vw, calc(10
+         -0vw - 40px)";                                                  
+       8 -                                                               
+       9 -export function Order() {                                      
+      10 -  return (                                                     
+      11 -    <section                                                   
+      12 -      id="order"                                               
+      13 -      aria-labelledby="order-title"                            
+      14 -      className="container-page grid gap-x-14 py-12 lg:grid-col
+         -s-[5fr_6fr] lg:grid-rows-[auto_1fr] lg:py-22"                  
+      15 -    >                                                          
+      16 -      <h2 id="order-title" className="type-h2 lg:pt-1">        
+      17 -        {order.title}                                          
+      18 -      </h2>                                                    
+      19 -                                                               
+      20 -      {/* Форма заявки – шаг 8 (LeadForm). Пока только каркас к
+         -арточки. */}                                                   
+      21 -      <Card                                                    
+      22 -        id={LEAD_FORM_ID}                                      
+      23 -        tone="white"                                           
+      24 -        shadow="lg"                                            
+      25 -        className="mt-6 mr-2.5 p-5 lg:col-start-2 lg:row-span-2
+         - lg:row-start-1 lg:mt-0 lg:mr-3 lg:self-start lg:p-9"          
+      26 -      >                                                        
+      27 -        <p className="text-sm text-brown">{order.form.note}</p>
+      28 -      </Card>                                                  
+      29 -                                                               
+      30 -      <div className="mt-8 lg:mt-9">                           
+      31 -        <Photo                                                 
+      32 -          photo={order.photo}                                  
+      33 -          sizes={PHOTO_SIZES}                                  
+      34 -          aspect="aspect-[4/3]"                                
+      35 -          className="border-3 border-ink"                      
+      36 -        />                                                     
+      37 -                                                               
+      38 -        <dl className="mt-6 lg:mt-8">                          
+      39 -          {order.info.map((item) => (                          
+      40 -            <div                                               
+     … 27 more lines (ctrl+o to expand)
+  ⎿  … 3 more files changed
+
+⏺ Bash(python3 - <<'EOF'
+      p='CLAUDE.md'…)
+  ⎿   CLAUDE.md | 1 +
+      1 file changed, 1 insertion(+)
+     c48c352 docs(claude): use repo PR template for pull request descriptio
+     ns
+  ⎿  Updated app/page.tsx (+10 -1)
+       1 +import { MobileBar } from "@/components/MobileBar";            
+       2 +import { Catalog } from "@/components/sections/Catalog";       
+       3 +import { Footer } from "@/components/sections/Footer";         
+       4  import { Founders } from "@/components/sections/Founders";
+       5  import { Freshness } from "@/components/sections/Freshness";
+       6  import { Header } from "@/components/sections/Header";
+       7  import { Hero } from "@/components/sections/Hero";
+       8 +import { Order } from "@/components/sections/Order";           
+       9 +import { Subscription } from "@/components/sections/Subscriptio
+         +n";                                                            
+      10  
+       6 -// Секции 05–08 (Кофе, Подписка, Заказ, Footer) – шаг 5        
+      11  export default function Home() {
+      12    return (
+      13      <>
+     ...
+      16          <Hero />
+      17          <Freshness />
+      18          <Founders />
+      19 +        <Catalog />                                            
+      20 +        <Subscription />                                       
+      21 +        <Order />                                              
+      22        </main>
+      23 +      <Footer />                                               
+      24 +      <MobileBar />                                            
+      25      </>
+      26    );
+      27  }
+  ⎿  Created components/MobileBar.tsx (+60 -0)
+       1 +"use client";                                                  
+       2 +                                                               
+       3 +import { useEffect, useState } from "react";                   
+       4 +import { ButtonLink } from "@/components/ui/Button";           
+       5 +import { cn } from "@/lib/cn";                                 
+       6 +import { LEAD_FORM_ID, mobileBar, ORDER_HREF } from "@/lib/cont
+         +ent";                                                          
+       7 +                                                               
+       8 +// Нижняя плашка < md: появляется, когда hero ушёл вверх за экр
+         +ан,                                                            
+       9 +// и прячется, пока форма заявки в зоне видимости (ТЗ, раздел 4
+         +).                                                             
+      10 +export function MobileBar() {                                  
+      11 +  const [heroPassed, setHeroPassed] = useState(false);         
+      12 +  const [formVisible, setFormVisible] = useState(false);       
+      13 +                                                               
+      14 +  useEffect(() => {                                            
+      15 +    const hero = document.getElementById("hero");              
+      16 +    const form = document.getElementById(LEAD_FORM_ID);        
+      17 +    if (!hero || !form) return;                                
+      18 +                                                               
+      19 +    const observer = new IntersectionObserver((entries) => {   
+      20 +      for (const entry of entries) {                           
+      21 +        if (entry.target === hero) {                           
+      22 +          setHeroPassed(                                       
+      23 +            !entry.isIntersecting && entry.boundingClientRect.t
+         +op < 0,                                                        
+      24 +          );                                                   
+      25 +        } else {                                               
+      26 +          setFormVisible(entry.isIntersecting);                
+      27 +        }                                                      
+      28 +      }                                                        
+      29 +    });                                                        
+      30 +    observer.observe(hero);                                    
+      31 +    observer.observe(form);                                    
+      32 +    return () => observer.disconnect();                        
+      33 +  }, []);                                                      
+      34 +                                                               
+      35 +  const visible = heroPassed && !formVisible;                  
+      36 +                                                               
+      37 +  // Скрытая плашка – invisible + inert: не ловит фокус и не чи
+         +тается                                                         
+      38 +  return (                                                     
+      39 +    <div                                                       
+      40 +      inert={!visible}                                         
+     … 20 more lines (ctrl+o to expand)
+  ⎿  Created components/sections/Catalog.tsx (+86 -0)
+       1 +import { ButtonLink } from "@/components/ui/Button";           
+       2 +import { Card, type CardTone } from "@/components/ui/Card";    
+       3 +import { Label, type LabelTone } from "@/components/ui/Label"; 
+       4 +import { ShortFull } from "@/components/ui/ShortFull";         
+       5 +import { coffee, CURRENCY, ORDER_HREF } from "@/lib/content";  
+       6 +                                                               
+       7 +// Цвет метки и фон этикетки по порядку карточек, как в макете 
+       8 +const LABEL_STYLES: { tag: LabelTone; card: CardTone }[] = [   
+       9 +  { tag: "orange", card: "kraft" },                            
+      10 +  { tag: "gold", card: "kraft" },                              
+      11 +  { tag: "brown", card: "kraft" },                             
+      12 +  { tag: "ink", card: "paper" },                               
+      13 +];                                                             
+      14 +                                                               
+      15 +export function Catalog() {                                    
+      16 +  return (                                                     
+      17 +    <section                                                   
+      18 +      id="coffee"                                              
+      19 +      aria-labelledby="coffee-title"                           
+      20 +      className="container-page py-12 lg:py-22"                
+      21 +    >                                                          
+      22 +      <div className="flex flex-col gap-2 lg:flex-row lg:items-
+         +end lg:justify-between lg:gap-8">                              
+      23 +        <h2 id="coffee-title" className="type-h2">             
+      24 +          {coffee.title}                                       
+      25 +        </h2>                                                  
+      26 +        <p className="type-label lg:pb-1">{coffee.subtitle}</p>
+      27 +      </div>                                                   
+      28 +                                                               
+      29 +      <ul className="mt-6 grid gap-4 md:grid-cols-2 md:gap-5 lg
+         +:mt-10 lg:grid-cols-4">                                        
+      30 +        {coffee.items.map((item, index) => {                   
+      31 +          const style = LABEL_STYLES[index % LABEL_STYLES.lengt
+         +h];                                                            
+      32 +                                                               
+      33 +          return (                                             
+      34 +            <Card                                              
+      35 +              key={item.number}                                
+      36 +              as="li"                                          
+      37 +              tone={style.card}                                
+      38 +              className="flex flex-col p-5 lg:p-6"             
+      39 +            >                                                  
+      40 +              <div className="flex items-center justify-between
+         + gap-3">                                                       
+     … 46 more lines (ctrl+o to expand)
+  ⎿  Created components/sections/Footer.tsx (+43 -0)
+       1 +import { business, footer } from "@/lib/content";              
+       2 +                                                               
+       3 +const EXTERNAL = { target: "_blank", rel: "noopener noreferrer"
+         + } as const;                                                   
+       4 +// py-1 – цель касания не меньше 24 px                         
+       5 +const LINK = "py-1 underline-offset-4 hover:underline";        
+       6 +                                                               
+       7 +// На мобильной снизу запас под плашку MobileBar с учётом safe-
+         +area                                                           
+       8 +export function Footer() {                                     
+       9 +  return (                                                     
+      10 +    <footer                                                    
+      11 +      id="footer"                                              
+      12 +      className="bg-ink pt-10 pb-[calc(7rem+env(safe-area-inset
+         +-bottom))] text-paper [--focus-ring:var(--color-paper)] md:pb-1
+         +0 lg:py-9"                                                     
+      13 +    >                                                          
+      14 +      <div className="container-page">                         
+      15 +        <div className="flex flex-col gap-2 md:flex-row md:item
+         +s-center md:justify-between md:gap-8">                         
+      16 +          <p className="font-display text-[1.75rem] leading-non
+         +e font-bold tracking-[0.04em] uppercase">                      
+      17 +            {footer.logo}                                      
+      18 +          </p>                                                 
+      19 +          <p className="mt-2 text-base md:mt-0">               
+      20 +            <a href={business.mapUrl} className={LINK} {...EXTE
+         +RNAL}>                                                         
+      21 +              {footer.address}                                 
+      22 +            </a>{" "}                                          
+      23 +            · {footer.since}                                   
+      24 +          </p>                                                 
+      25 +          <a                                                   
+      26 +            href={footer.instagram.href}                       
+      27 +            className="self-start py-1 text-base underline unde
+         +rline-offset-4 md:self-auto"                                   
+      28 +            {...EXTERNAL}                                      
+      29 +          >                                                    
+      30 +            {footer.instagram.label}                           
+      31 +          </a>                                                 
+      32 +        </div>                                                 
+      33 +                                                               
+      34 +        <div className="mt-8 flex flex-col gap-2 border-t-2 bor
+         +der-dashed border-paper/40 pt-5 text-sm text-paper/70 md:flex-r
+         +ow md:justify-between md:gap-8 lg:mt-7">                       
+      35 +          <a href={footer.privacy.href} className={`self-start 
+         +${LINK}`}>                                                     
+      36 +            {footer.privacy.label}                             
+      37 +          </a>                                                 
+      38 +          <p>{footer.disclaimer}</p>                           
+      39 +        </div>                                                 
+      40 +      </div>                                                   
+     … 3 more lines (ctrl+o to expand)
+  ⎿  Created components/sections/Order.tsx (+67 -0)
+       1 +import { Card } from "@/components/ui/Card";                   
+       2 +import { Photo } from "@/components/ui/Photo";                 
+       3 +import { LEAD_FORM_ID, order } from "@/lib/content";           
+       4 +                                                               
+       5 +// Левая колонка с lg: 538 px в контейнере 1280, иначе ~43vw   
+       6 +const PHOTO_SIZES =                                            
+       7 +  "(min-width: 1280px) 538px, (min-width: 1024px) 43vw, calc(10
+         +0vw - 40px)";                                                  
+       8 +                                                               
+       9 +export function Order() {                                      
+      10 +  return (                                                     
+      11 +    <section                                                   
+      12 +      id="order"                                               
+      13 +      aria-labelledby="order-title"                            
+      14 +      className="container-page grid gap-x-14 py-12 lg:grid-col
+         +s-[5fr_6fr] lg:grid-rows-[auto_1fr] lg:py-22"                  
+      15 +    >                                                          
+      16 +      <h2 id="order-title" className="type-h2 lg:pt-1">        
+      17 +        {order.title}                                          
+      18 +      </h2>                                                    
+      19 +                                                               
+      20 +      {/* Форма заявки – шаг 8 (LeadForm). Пока только каркас к
+         +арточки. */}                                                   
+      21 +      <Card                                                    
+      22 +        id={LEAD_FORM_ID}                                      
+      23 +        tone="white"                                           
+      24 +        shadow="lg"                                            
+      25 +        className="mt-6 mr-2.5 p-5 lg:col-start-2 lg:row-span-2
+         + lg:row-start-1 lg:mt-0 lg:mr-3 lg:self-start lg:p-9"          
+      26 +      >                                                        
+      27 +        <p className="text-sm text-brown">{order.form.note}</p>
+      28 +      </Card>                                                  
+      29 +                                                               
+      30 +      <div className="mt-8 lg:mt-9">                           
+      31 +        <Photo                                                 
+      32 +          photo={order.photo}                                  
+      33 +          sizes={PHOTO_SIZES}                                  
+      34 +          aspect="aspect-[4/3]"                                
+      35 +          className="border-3 border-ink"                      
+      36 +        />                                                     
+      37 +                                                               
+      38 +        <dl className="mt-6 lg:mt-8">                          
+      39 +          {order.info.map((item) => (                          
+      40 +            <div                                               
+     … 27 more lines (ctrl+o to expand)
+  ⎿  … 3 more files changed
+  ⎿  PostToolUse:Bash says: Tip: Run /ultrareview before you push to catch bugs 
+     with a cloud-based multi-agent review.
+
+⏺ Добавил в CLAUDE.md, раздел «Как работаем», строку: «Описание PR – по
+  .github/pull_request_template.md (образец – PR #6)». Закоммитил прямо в main
+  (c48c352) и запушил, теперь это последний коммит в origin/main. Потом вернулся
+  на ветку feat/sections-bottom.
+
+  PR #7 этот коммит не задевает: он меняет только CLAUDE.md, а шаг 5 этот файл
+  не трогает.
+
+✻ Worked for 57s · done Thursday 9:41 PM

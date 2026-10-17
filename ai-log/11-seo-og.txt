@@ -1,0 +1,946 @@
+ ▐▛███▛█   Claude Code v2.1.281
+▝▜██████▀  Opus 5.5 · Claude Pro
+  ▝▝ ▝▝    ~/Documents/Programming/kvarta-landing
+
+
+❯ /clear                                                                        
+
+❯ приступаем к пункту 11                                                        
+
+  Searched for 3 patterns, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Создал ветку feat/seo-og от main и изучил нужные разделы ТЗ. Теперь разберусь
+  с компонентами и документацией Next 16 по metadata и иконкам, после чего
+  приступлю к коду.
+
+  Searched for 2 patterns, read 1 file, listed 1 directory, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Собрал контекст. Смотрю скриншот hero, чтобы OG-картинка была в стиле макета.
+
+  Read 1 file, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Пишу код. Сначала адрес сайта и тексты.
+
+⏺ Write(lib/site.ts)
+  ⎿  Wrote 27 lines to lib/site.ts
+       1 // Адрес сайта для metadata, OG, sitemap и JSON-LD. Без Next – e
+         nv передаётся параметром.
+       2 
+       4 
+       5 const DEV_URL = "http://localhost:3000";
+       6 
+       7 /** Vercel отдаёт хосты без протокола – дописываем https:// */
+         https://") {
+       9   if (!value) return null;
+      10   try {
+     … +22 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='lib/lead/guard.ts'…)
+  ⎿  3:import { createHash } from "node:crypto";
+     4:import { toOrigin } from "@/lib/site";
+  ⎿  Updated lib/lead/guard.ts (+1 -9)
+      1  // Защита POST /api/lead до записи в БД (ТЗ, раздел 10): Origin,
+          хеш IP, фильтр ботов.
+      2  // Без React и без Next – функции принимают заголовки и env, их 
+         легко тестировать.
+      3  import { createHash } from "node:crypto";
+      4 +import { toOrigin } from "@/lib/site";                          
+      5  
+      6  type Env = Record<string, string | undefined>;
+      7  
+     ...
+      12  
+      13  export const USER_AGENT_MAX = 200;
+      14  
+      14 -function toOrigin(value: string | undefined, protocol = "https:
+         -//") {                                                         
+      15 -  if (!value) return null;                                     
+      16 -  try {                                                        
+      17 -    return new URL(value.includes("://") ? value : protocol + v
+         -alue).origin;                                                  
+      18 -  } catch {                                                    
+      19 -    return null;                                               
+      20 -  }                                                            
+      21 -}                                                              
+      22 -                                                               
+      15  /**
+      16   * Свой домен и превью Vercel этого проекта. Vercel отдаёт хост
+          ы без протокола:
+      17   * VERCEL_URL – адрес деплоя, VERCEL_BRANCH_URL – адрес ветки.
+
+⏺ Теперь тексты для metadata, /privacy и 404 в lib/content.ts.
+
+⏺ Bash(cat >> lib/content.ts <<'EOF'…)
+  ⎿  Updated lib/content.ts (+79 -0)
+      343    cta: "Заявка",
+      344    interest: "subscription",
+      345  } as const;
+      346 +                                                              
+      347 +// Превью ссылки и поисковики (ТЗ, раздел 11)                 
+      348 +export const seo = {                                          
+      349 +  title: `${business.name} – свежеобжаренный кофе в ${CITY}е`,
+      350 +  // Для внутренних страниц: «Политика… – Кварта»             
+      351 +  titleTemplate: `%s – ${business.name}`,                     
+      352 +  description: `Обжариваем по четвергам, в пятницу привозим по
+          + ${CITY}у – зерно у вас на 1–3 день после обжарки. Подписка: 2
+          + пачки по ${PACK} за ${formatPrice(SUBSCRIPTION_PRICE)} в меся
+          +ц, доставка бесплатно.`,                                      
+      353 +  ogAlt: `${hero.title.before} ${hero.title.accent} ${hero.tit
+          +le.after} Обжарка «${business.name}», ${CITY}: руки держат кра
+          +фтовую пачку кофе`,                                           
+      354 +  ogBadge: `${subscription.tag} · ${subscriptionPrice}`,      
+      355 +} as const;                                                   
+      356 +                                                              
+      357 +// Политика обработки персональных данных (ТЗ, раздел 10). Не 
+          +юридическая консультация:                                     
+      358 +// минимум, который показывает понимание темы.                
+      359 +export const privacy = {                                      
+      360 +  title: "Политика обработки персональных данных",            
+      361 +  description: `Как обжарка «${business.name}» обрабатывает им
+          +я и телефон из формы заявки: зачем, где хранит и как попросить
+          + удалить.`,                                                   
+      362 +  updated: `Редакция от 16 октября 2026${NBSP}г.`,            
+      363 +  intro: `«${business.name}» – учебный проект, обжарка вымышле
+          +нная, но форма на сайте настоящая и заявки сохраняются. Здесь 
+          +– что происходит с данными, которые вы оставляете в форме. Пол
+          +итика составлена по Закону Республики Беларусь от 7 мая 2021${
+          +NBSP}г. №${NBSP}99-З «О защите персональных данных».`,        
+      364 +  sections: [                                                 
+      365 +    {                                                         
+      366 +      title: "Кто обрабатывает данные",                       
+      367 +      text: [                                                 
+      368 +        `Оператор – обжарка «${business.name}», ${business.add
+          +ress}.`,                                                      
+      369 +      ],                                                      
+      370 +    },                                                        
+      371 +    {                                                         
+      372 +      title: "Какие данные собираем",                         
+      373 +      list: [                                                 
+      374 +        "имя и телефон – чтобы перезвонить;",                 
+      375 +        "что вас интересует и комментарий к заявке;",         
+      376 +        "рекламные метки ссылки (UTM и идентификатор клика), а
+          +дрес страницы и откуда вы пришли – чтобы понимать, какая рекла
+          +ма работает;",                                                
+      377 +        "браузер и тип устройства, а вместо IP-адреса – его хе
+          +ш: так мы защищаемся от спама. Сам IP-адрес не храним.",      
+      378 +      ],                                                      
+      379 +    },                                                        
+      380 +    {                                                         
+      381 +      title: "Зачем",                                         
+      382 +      text: [                                                 
+     … 42 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='lib/content.ts'…)
+  ⎿  252:        `По Минску в пятницу. От ${formatPrice(FREE_DELIVERY_FROM)
+     } бесплатно.`,
+     349:  title: `${business.name} – свежеобжаренный кофе в Минске`,
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated lib/content.ts (+8 -7)
+      346  
+      347  // Превью ссылки и поисковики (ТЗ, раздел 11)
+      348  export const seo = {
+      349 -  title: `${business.name} – свежеобжаренный кофе в ${CITY}е`,
+      349 +  title: `${business.name} – свежеобжаренный кофе в Минске`,  
+      350    // Для внутренних страниц: «Политика… – Кварта»
+      351    titleTemplate: `%s – ${business.name}`,
+      352 -  description: `Обжариваем по четвергам, в пятницу привозим по
+          - ${CITY}у – зерно у вас на 1–3 день после обжарки. Подписка: 2
+          - пачки по ${PACK} за ${formatPrice(SUBSCRIPTION_PRICE)} в меся
+          -ц, доставка бесплатно.`,                                      
+      352 +  description: `Обжариваем по четвергам, в пятницу привозим по
+          + Минску – зерно у вас на 1–3 день после обжарки. Подписка: 2 п
+          +ачки по ${PACK} за ${formatPrice(SUBSCRIPTION_PRICE)} в месяц,
+          + доставка бесплатно.`,                                        
+      353    ogAlt: `${hero.title.before} ${hero.title.accent} ${hero.tit
+           le.after} Обжарка «${business.name}», ${CITY}: руки держат кра
+           фтовую пачку кофе`,
+      354    ogBadge: `${subscription.tag} · ${subscriptionPrice}`,
+      355  } as const;
+     ...
+      413    },
+      414  } as const;
+      415  
+      416 +// Шапка внутренних страниц: /privacy и 404                   
+      417 +export const subpage = {                                      
+      418 +  home: "На главную",                                         
+      419 +} as const;                                                   
+      420 +                                                              
+      421  export const notFound = {
+      422    title: "Страница не найдена",
+      423    text: "Возможно, ссылка устарела или в адресе опечатка. Кофе
+           , подписка и форма заявки – на главной.",
+      419 -  cta: "На главную",                                          
+      420 -} as const;                                                   
+      421 -                                                              
+      422 -export const subpage = {                                      
+      423 -  home: "На главную",                                         
+      424 +  cta: subpage.home,                                          
+      425  } as const;
+
+⏺ Теперь JSON-LD — отдельный модуль без React, чтобы покрыть тестом.
+
+⏺ Write(lib/jsonld.ts)
+  ⎿  Wrote 35 lines to lib/jsonld.ts
+       1 // JSON-LD обжарки для поисковиков (ТЗ, раздел 11): адрес и часы
+          – из content.ts.
+       2 import { business, photos, seo } from "@/lib/content";
+       3 
+       4 export function coffeeShopJsonLd(site: URL) {
+       6     "@context": "https://schema.org",
+       7     "@type": "CafeOrCoffeeShop",
+       8     name: business.name,
+       9     description: seo.description,
+      10     url: site.href,
+     … +27 lines (ctrl+o to expand)
+
+⏺ Write(tests/unit/seo.test.ts)
+  ⎿  Wrote 62 lines to tests/unit/seo.test.ts
+       1 import { describe, expect, it } from "vitest";
+       2 import { business } from "@/lib/content";
+       3 import { coffeeShopJsonLd, serializeJsonLd } from "@/lib/jsonld"
+       4 import { siteUrl } from "@/lib/site";
+       5 
+       6 describe("siteUrl", () => {
+       7   it("prefers NEXT_PUBLIC_SITE_URL", () => {
+       9       NEXT_PUBLIC_SITE_URL: "https://kvarta.by/",
+      10       VERCEL_PROJECT_PRODUCTION_URL: "kvarta-landing.vercel.app"
+         ,
+     … +57 lines (ctrl+o to expand)
+
+⏺ Metadata в layout.tsx и JSON-LD на главной.
+
+⏺ Bash(python3 - <<'EOF'
+      p='app/layout.tsx'…)
+  ⎿  Updated app/layout.tsx (+17 -2)
+      1  import type { Metadata } from "next";
+      2  import { JetBrains_Mono, Onest, Oswald } from "next/font/google"
+         ;
+      3 +import { business, seo } from "@/lib/content";                  
+      4 +import { siteUrl } from "@/lib/site";                           
+      5  import "./globals.css";
+      6  
+      7  const oswald = Oswald({
+     ...
+      27    preload: false,
+      28  });
+      29  
+      30 +// OG-картинка и иконки – файлы рядом (opengraph-image.jpg, ico
+         +n.svg, apple-icon.png,                                         
+      31 +// favicon.ico), Next сам ставит теги. Пересобрать: node script
+         +s/brand-assets.mjs                                             
+      32  export const metadata: Metadata = {
+      29 -  title: "Кварта",                                             
+      30 -  description: "Обжарка кофе в Минске",                        
+      33 +  metadataBase: siteUrl(),                                     
+      34 +  title: { default: seo.title, template: seo.titleTemplate },  
+      35 +  description: seo.description,                                
+      36 +  alternates: { canonical: "/" },                              
+      37 +  openGraph: {                                                 
+      38 +    type: "website",                                           
+      39 +    locale: "ru_RU",                                           
+      40 +    siteName: business.name,                                   
+      41 +    title: seo.title,                                          
+      42 +    description: seo.description,                              
+      43 +    url: "/",                                                  
+      44 +  },                                                           
+      45 +  twitter: { card: "summary_large_image" },                    
+      46  };
+      47  
+      48  export default function RootLayout({
+  ⎿  Updated app/page.tsx (+9 -0)
+       7  import { Hero } from "@/components/sections/Hero";
+       8  import { Order } from "@/components/sections/Order";
+       9  import { Subscription } from "@/components/sections/Subscriptio
+          n";
+      10 +import { coffeeShopJsonLd, serializeJsonLd } from "@/lib/jsonld
+         +";                                                             
+      11 +import { siteUrl } from "@/lib/site";                          
+      12  
+      13  export default function Home() {
+      14    return (
+     ...
+      24        </main>
+      25        <Footer />
+      26        <MobileBar />
+      27 +      <script                                                  
+      28 +        type="application/ld+json"                             
+      29 +        // Данные только из content.ts, «<» экранирован в seria
+         +lizeJsonLd                                                     
+      30 +        dangerouslySetInnerHTML={{                             
+      31 +          __html: serializeJsonLd(coffeeShopJsonLd(siteUrl())),
+      32 +        }}                                                     
+      33 +      />                                                       
+      34      </>
+      35    );
+      36  }
+
+⏺ Bash(cat > app/robots.ts <<'EOF'
+      import type { MetadataRoute } from "next";…)
+  ⎿  Created app/robots.ts (+9 -0)
+      1 +import type { MetadataRoute } from "next";                      
+      2 +import { siteUrl } from "@/lib/site";                           
+      3 +                                                                
+      4 +export default function robots(): MetadataRoute.Robots {        
+      5 +  return {                                                      
+      6 +    rules: { userAgent: "*", allow: "/", disallow: "/api/" },   
+      7 +    sitemap: new URL("/sitemap.xml", siteUrl()).href,           
+      8 +  };                                                            
+      9 +}                                                               
+  ⎿  Created app/sitemap.ts (+10 -0)
+       1 +import type { MetadataRoute } from "next";                     
+       2 +import { siteUrl } from "@/lib/site";                          
+       3 +                                                               
+       4 +export default function sitemap(): MetadataRoute.Sitemap {     
+       5 +  const site = siteUrl();                                      
+       6 +  return [                                                     
+       7 +    { url: site.href, changeFrequency: "weekly", priority: 1 },
+       8 +    { url: new URL("/privacy", site).href, changeFrequency: "ye
+         +arly" },                                                       
+       9 +  ];                                                           
+      10 +}                                                              
+
+⏺ Шапка для внутренних страниц и проп у Footer (без плашки внизу не нужен запас
+  7rem).
+
+⏺ Bash(cat > components/sections/SubpageHeader.tsx <<'EOF'
+      import Link from "next/link";…)
+  ⎿  // Склеивает классы и пропускает пустые: cn("a", cond && "b")
+     export function cn(...classes: (string | false | null | undefined)[]):
+      string {
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated components/sections/Footer.tsx (+10 -3)
+       1 +import { cn } from "@/lib/cn";                                 
+       2  import { business, footer } from "@/lib/content";
+       3  
+       4  const EXTERNAL = { target: "_blank", rel: "noopener noreferrer"
+           } as const;
+       5  // py-1 – цель касания не меньше 24 px
+       6  const LINK = "py-1 underline-offset-4 hover:underline";
+       7  
+       7 -// На мобильной снизу запас под плашку MobileBar с учётом safe-
+         -area                                                           
+       8 -export function Footer() {                                     
+       8 +// На мобильной снизу запас под плашку MobileBar с учётом safe-
+         +area.                                                          
+       9 +// На внутренних страницах плашки нет – и запаса тоже.         
+      10 +export function Footer({ withMobileBar = true }: { withMobileBa
+         +r?: boolean }) {                                               
+      11    return (
+      12      <footer
+      13        id="footer"
+      12 -      className="bg-ink pt-10 pb-[calc(7rem+env(safe-area-inset
+         --bottom))] text-paper [--focus-ring:var(--color-paper)] md:pb-1
+         -0 lg:py-9"                                                     
+      14 +      className={cn(                                           
+      15 +        "bg-ink pt-10 text-paper [--focus-ring:var(--color-pape
+         +r)] md:pb-10 lg:py-9",                                         
+      16 +        withMobileBar                                          
+      17 +          ? "pb-[calc(7rem+env(safe-area-inset-bottom))]"      
+      18 +          : "pb-[calc(2.5rem+env(safe-area-inset-bottom))]",   
+      19 +      )}                                                       
+      20      >
+      21        <div className="container-page">
+      22          <div className="flex flex-col gap-2 md:flex-row md:item
+          s-center md:justify-between md:gap-8">
+  ⎿  Created components/sections/SubpageHeader.tsx (+25 -0)
+       1 +import Link from "next/link";                                  
+       2 +import { buttonClasses } from "@/components/ui/Button";        
+       3 +import { nav, subpage } from "@/lib/content";                  
+       4 +                                                               
+       5 +// Шапка /privacy и 404: якоря главной здесь не нужны – только 
+         +путь назад                                                     
+       6 +export function SubpageHeader() {                              
+       7 +  return (                                                     
+       8 +    <header id="header" className="border-b-3 border-ink bg-pap
+         +er">                                                           
+       9 +      <div className="container-page flex h-16 items-center jus
+         +tify-between gap-6 lg:h-26">                                   
+      10 +        <Link                                                  
+      11 +          href="/"                                             
+      12 +          className="font-display text-[2rem] leading-none font
+         +-bold tracking-[0.04em] uppercase lg:text-[2.5rem]"            
+      13 +        >                                                      
+      14 +          {nav.logo}                                           
+      15 +        </Link>                                                
+      16 +        <Link                                                  
+      17 +          href="/"                                             
+      18 +          className={buttonClasses({ variant: "outline", size: 
+         +"sm" })}                                                       
+      19 +        >                                                      
+      20 +          {subpage.home}                                       
+      21 +        </Link>                                                
+      22 +      </div>                                                   
+      23 +    </header>                                                  
+      24 +  );                                                           
+      25 +}                                                              
+
+⏺ Страница /privacy:
+
+⏺ Write(app/privacy/page.tsx)
+  ⎿  Wrote 73 lines to app/privacy/page.tsx
+       1 import type { Metadata } from "next";
+       2 import { Footer } from "@/components/sections/Footer";
+       3 import { SubpageHeader } from "@/components/sections/SubpageHead
+         er";
+       4 import { privacy } from "@/lib/content";
+       6 const PATH = "/privacy";
+       7 
+       8 export const metadata: Metadata = {
+       9   title: privacy.title,
+      10   description: privacy.description,
+     … +70 lines (ctrl+o to expand)
+
+⏺ Write(app/not-found.tsx)
+  ⎿  Wrote 32 lines to app/not-found.tsx
+       1 import type { Metadata } from "next";
+       2 import Link from "next/link";
+       3 import { Footer } from "@/components/sections/Footer";
+       4 import { SubpageHeader } from "@/components/sections/SubpageHead
+         er";
+       6 import { notFound } from "@/lib/content";
+       7 
+       8 export const metadata: Metadata = {
+       9   title: notFound.title,
+      10 };
+     … +26 lines (ctrl+o to expand)
+
+⏺ Заголовки безопасности в next.config.ts:
+
+⏺ Bash(python3 - <<'EOF'
+      p='next.config.ts'…)  ⎿  Updated next.config.ts (+30 -1)
+       1  import type { NextConfig } from "next";
+       2  
+       3 +// ТЗ, раздел 10. CSP без nonce: nonce делает страницу динамиче
+         +ской, а сторонних                                              
+       4 +// скриптов нет. 'unsafe-inline' в script-src – под встроенные 
+         +скрипты Next.                                                  
+       5 +const CSP = [                                                  
+       6 +  "default-src 'self'",                                        
+       7 +  "script-src 'self' 'unsafe-inline'",                         
+       8 +  "style-src 'self' 'unsafe-inline'",                          
+       9 +  "img-src 'self' data: blob:",                                
+      10 +  "font-src 'self'",                                           
+      11 +  "connect-src 'self'",                                        
+      12 +  "object-src 'none'",                                         
+      13 +  "base-uri 'self'",                                           
+      14 +  "form-action 'self'",                                        
+      15 +  "frame-ancestors 'none'",                                    
+      16 +].join("; ");                                                  
+      17 +                                                               
+      18 +export const securityHeaders = [                               
+      19 +  { key: "Content-Security-Policy", value: CSP },              
+      20 +  { key: "X-Content-Type-Options", value: "nosniff" },         
+      21 +  { key: "Referrer-Policy", value: "strict-origin-when-cross-or
+         +igin" },                                                       
+      22 +  {                                                            
+      23 +    key: "Permissions-Policy",                                 
+      24 +    value: "camera=(), microphone=(), geolocation=()",         
+      25 +  },                                                           
+      26 +];                                                             
+      27 +                                                               
+      28  const nextConfig: NextConfig = {
+       4 -  /* config options here */                                    
+      29    cacheComponents: true,
+      30    partialPrefetching: true,
+      31    turbopack: {
+     ...
+      36        },
+      37      },
+      38    },
+      39 +  // Только в production: next dev исполняет код через eval, CS
+         +P его бы заблокировал                                          
+      40 +  async headers() {                                            
+      41 +    if (process.env.NODE_ENV !== "production") return [];      
+      42 +    return [{ source: "/:path*", headers: securityHeaders }];  
+      43 +  },                                                           
+     … 3 more lines (ctrl+o to expand)
+
+⏺ Теперь скрипт, который собирает OG-картинку и иконки из content.ts через
+  Playwright (он уже в devDependencies).
+
+⏺ Write(scripts/brand-assets.mjs)
+  ⎿  Wrote 118 lines to scripts/brand-assets.mjs
+       1 // OG-картинка и иконки: node scripts/brand-assets.mjs
+         – design/tokens.md.
+       3 // Результат – статичные файлы в app/, теги для них Next ставит 
+         сам:
+         on.png, favicon.ico.
+       5 // Шрифты берутся с Google Fonts – нужен интернет. Запускать при
+       6 import { chromium } from '@playwright/test';
+       7 import { readFileSync, statSync, writeFileSync } from 'node:fs';
+       8 import { business, hero, photos, seo } from '../lib/content.ts';
+      10 const INK = '#1A1411';
+     … +134 lines (ctrl+o to expand)
+
+⏺ Bash(node scripts/brand-assets.mjs 2>&1 | tail -8)
+  ⎿  (node:7730) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of fil
+     e:///Users/andrey/Documents/Programming/kvarta-landing/lib/content.ts
+     is not specified and it doesn't parse as CommonJS.
+     … +9 lines (ctrl+o to expand)
+  ⎿  Created app/icon.svg (+5 -0)
+      1 +<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">    
+      2 +  <rect width="64" height="64" fill="#E4572E"/>                 
+      3 +  <path fill="#1A1411" d="M16 10h11v44H16z"/>                   
+      4 +  <path fill="#1A1411" d="M26 27 37 10h12L37.5 31.5 50 54H38L26 
+        +36z"/>                                                          
+      5 +</svg>                                                          
+  ⎿  Created app/opengraph-image.alt.txt (+1 -0)
+      1 +Обжарили в четверг. В пятницу уже у вас. Обжарка «Кварта», Минск
+        +: руки держат крафтовую пачку кофе                              
+  ⎿  … 3 more files changed
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Нашёл OG-картинку в стиле макета (~100 КБ). Сейчас поправлю перенос строки,
+  чтобы висящее «У» выглядело как в макете («…УЖЕ / У ВАС.»).
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Bash(sed -i '' 's|  h1 { margin-top: 28px; font: 700 86px/0.98 Oswald,
+      sans-serif; letter-spacing: .02em;|  /* Ширина – чтобы строки легли как в
+      макете: «…уже / у ва…)
+  ⎿  app/opengraph-image.jpg: 100 КБ
+     app/apple-icon.png: 2 КБ
+     app/favicon.ico: 2 КБ
+  ⎿  Updated scripts/brand-assets.mjs (+2 -1)
+      38    .tag { font: 500 18px/1 'JetBrains Mono', monospace; letter-s
+          pacing: .08em;
+      39      text-transform: uppercase; padding: 9px 14px; }
+      40    .tag.orange { background: ${ORANGE}; }
+      41 -  h1 { margin-top: 28px; font: 700 86px/0.98 Oswald, sans-serif
+         -; letter-spacing: .02em;                                       
+      41 +  /* Ширина – чтобы строки легли как в макете: «…уже / у вас.» 
+         +*/                                                             
+      42 +  h1 { margin-top: 28px; max-width: 600px; font: 700 86px/0.98 
+         +Oswald, sans-serif; letter-spacing: .02em;                     
+      43      text-transform: uppercase; }
+      44    h1 span { color: ${ORANGE}; }
+      45    .bottom { margin-top: auto; display: flex; align-items: cente
+          r; gap: 24px;
+  ⎿  … 1 more file changed
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Картинка и иконки готовы. Гоняю lint, typecheck, unit-тесты и прод-сборку.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Next-декодер ICO требует RGBA, а Chromium по умолчанию отдаёт непрозрачный PNG
+  в RGB. Переключаю захват иконок на omitBackground, чтобы PNG получался с
+  альфа-каналом.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Форматтер перевёл скрипт на двойные кавычки — правлю через Edit.
+
+⏺ Update(scripts/brand-assets.mjs)
+  ⎿  Added 2 lines, removed 1 line
+      81    render(
+      82      `<style>*{margin:0}</style><img src="data:image/svg+xml,${e
+          ncodeURIComponent(ICON_SVG)}" width="${size}" height="${size}">
+          `,
+      83      { width: size, height: size },
+      84 -    { type: "png" },                                           
+      84 +    // omitBackground – PNG с альфа-каналом: ICO-декодер Next н
+         +е принимает RGB                                                
+      85 +    { type: "png", omitBackground: true },                     
+      86    );
+      87  
+      88  // ICO с PNG внутри – так умеют все браузеры: заголовок, катало
+          г, картинки
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Скриншот Chromium снова отдаёт RGB для непрозрачной картинки. Попробую другой
+  подход: нарисовать SVG в canvas и получить RGBA через toDataURL.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Update(scripts/brand-assets.mjs)
+  ⎿  Added 18 lines, removed 6 lines
+       77    return buffer;
+       78  }
+       79  
+       80 -const iconPng = (size) =>                                     
+       81 -  render(                                                     
+       82 -    `<style>*{margin:0}</style><img src="data:image/svg+xml,${
+          -encodeURIComponent(ICON_SVG)}" width="${size}" height="${size}
+          -">`,                                                          
+       83 -    { width: size, height: size },                            
+       84 -    // omitBackground – PNG с альфа-каналом: ICO-декодер Next 
+          -не принимает RGB                                              
+       85 -    { type: "png", omitBackground: true },                    
+       80 +// Через canvas, а не скриншот: скриншот непрозрачной картинки
+          + – PNG без                                                    
+       81 +// альфа-канала, а ICO-декодер Next принимает только RGBA     
+       82 +async function iconPng(size) {                                
+       83 +  const page = await browser.newPage();                       
+       84 +  const base64 = await page.evaluate(                         
+       85 +    async ({ svg, size }) => {                                
+       86 +      const img = new Image();                                
+       87 +      img.src = `data:image/svg+xml,${encodeURIComponent(svg)}
+          +`;                                                            
+       88 +      await img.decode();                                     
+       89 +      const canvas = document.createElement("canvas");        
+       90 +      canvas.width = canvas.height = size;                    
+       91 +      canvas.getContext("2d").drawImage(img, 0, 0, size, size)
+          +;                                                             
+       92 +      return canvas.toDataURL("image/png").split(",")[1];     
+       93 +    },                                                        
+       94 +    { svg: ICON_SVG, size },                                  
+       95    );
+       96 +  await page.close();                                         
+       97 +  return Buffer.from(base64, "base64");                       
+       98 +}                                                             
+       99  
+      100  // ICO с PNG внутри – так умеют все браузеры: заголовок, катал
+           ог, картинки
+      101  function toIco(pngs) {
+
+⏺ Bash(grep -n "render(" scripts/brand-assets.mjs; node scripts/brand-assets.mjs
+      2>&1 | grep КБ && node -e '
+      const b=require("fs").readFileSync("app/favicon.ico");cons…)
+  ⎿  71:async function render(html, { width, height }, options) {
+     120:const og = await render(
+     app/opengraph-image.jpg: 100 КБ
+     … +5 lines (ctrl+o to expand)
+  ⎿  2 files changed (binary, mode only or too large to show)
+
+⏺ RGBA. Собираю снова.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Всё статическое (○). Поднимаю прод-сервер и проверяю заголовки и мета-теги.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ На 3000 уже крутится next dev (не трогаю). Запускаю прод-сборку на 3100.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Всё в порядке, кроме /privacy — там пропал og:image, так как локальный
+  openGraph полностью перезаписывает родительский. Сейчас явно укажу картинку.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Вынесу общую часть OG в lib/metadata.ts: у /privacy вместе с картинкой пропали
+  ещё og:type, locale и site_name.
+
+⏺ Bash(cat > lib/metadata.ts <<'EOF'
+      // Общая часть Open Graph. Next сливает metadata поверхностно: страница со
+      своим…)
+  ⎿  Updated app/layout.tsx (+3 -4)
+      1  import type { Metadata } from "next";
+      2  import { JetBrains_Mono, Onest, Oswald } from "next/font/google"
+         ;
+      3 -import { business, seo } from "@/lib/content";                  
+      3 +import { seo } from "@/lib/content";                            
+      4 +import { openGraphBase } from "@/lib/metadata";                 
+      5  import { siteUrl } from "@/lib/site";
+      6  import "./globals.css";
+      7  
+     ...
+      36    description: seo.description,
+      37    alternates: { canonical: "/" },
+      38    openGraph: {
+      38 -    type: "website",                                           
+      39 -    locale: "ru_RU",                                           
+      40 -    siteName: business.name,                                   
+      39 +    ...openGraphBase,                                          
+      40      title: seo.title,
+      41      description: seo.description,
+      42      url: "/",
+  ⎿  Updated app/privacy/page.tsx (+3 -0)
+      2  import { Footer } from "@/components/sections/Footer";
+      3  import { SubpageHeader } from "@/components/sections/SubpageHead
+         er";
+      4  import { privacy } from "@/lib/content";
+      5 +import { ogImage, openGraphBase } from "@/lib/metadata";        
+      6  
+      7  const PATH = "/privacy";
+      8  
+     ...
+      11    description: privacy.description,
+      12    alternates: { canonical: PATH },
+      13    openGraph: {
+      14 +    ...openGraphBase,                                          
+      15      title: privacy.title,
+      16      description: privacy.description,
+      17      url: PATH,
+      18 +    images: ogImage,                                           
+      19    },
+      20  };
+      21  
+  ⎿  Created lib/metadata.ts (+21 -0)
+       1 +// Общая часть Open Graph. Next сливает metadata поверхностно: 
+         +страница со своим                                              
+       2 +// openGraph теряет поля layout, а заодно и картинку app/opengr
+         +aph-image.jpg.                                                 
+       3 +import type { Metadata } from "next";                          
+       4 +import { business, seo } from "@/lib/content";                 
+       5 +                                                               
+       6 +type OpenGraph = NonNullable<Metadata["openGraph"]>;           
+       7 +                                                               
+       8 +export const openGraphBase = {                                 
+       9 +  type: "website",                                             
+      10 +  locale: "ru_RU",                                             
+      11 +  siteName: business.name,                                     
+      12 +} satisfies OpenGraph;                                         
+      13 +                                                               
+      14 +/** Для внутренних страниц: на главной картинку с хешем в адрес
+         +е ставит сам Next */                                           
+      15 +export const ogImage = {                                       
+      16 +  url: "/opengraph-image.jpg",                                 
+      17 +  width: 1200,                                                 
+      18 +  height: 630,                                                 
+      19 +  type: "image/jpeg",                                          
+      20 +  alt: seo.ogAlt,                                              
+      21 +};                                                             
+
+⏺ Теперь e2e: заголовки, превью ссылки, JSON-LD, robots/sitemap, /privacy и 404.
+
+⏺ Write(tests/e2e/seo.spec.ts)
+  ⎿  Wrote 84 lines to tests/e2e/seo.spec.ts
+       1 // Превью ссылки, JSON-LD, robots/sitemap, /privacy, 404 и загол
+       2 import { business, footer, notFound, privacy, seo } from "@/lib/
+         content";
+       4 import { expect, openLanding, test } from "./fixtures";
+       6 // next.config.ts ставит заголовки только в прод-сборке: в CI эт
+         о next start
+         T_BASE_URL;
+       8 
+          page }) => {
+         );
+     … +89 lines (ctrl+o to expand)
+⏺ Bash(python3 - <<'EOF'
+      p='tests/e2e/a11y.spec.ts'…)
+  ⎿  Updated tests/e2e/a11y.spec.ts (+8 -1)
+      1 -// axe: 0 нарушений serious/critical на странице и в состояниях 
+        -формы (ТЗ, раздел 14)                                           
+      1 +// axe: 0 нарушений serious/critical на страницах и в состояниях
+        + формы (ТЗ, раздел 14)                                          
+      2  import AxeBuilder from "@axe-core/playwright";
+      3  import type { Page } from "@playwright/test";
+      4  import { expect, leadForm, openLanding, test } from "./fixtures"
+         ;
+     ...
+      22    expect(await seriousViolations(page)).toEqual([]);
+      23  });
+      24  
+      25 +test("политика и 404", async ({ page }) => {                   
+      26 +  await page.goto("/privacy");                                 
+      27 +  expect(await seriousViolations(page)).toEqual([]);           
+      28 +  await page.goto("/no-such-page");                            
+      29 +  expect(await seriousViolations(page)).toEqual([]);           
+      30 +});                                                            
+      31 +                                                               
+      32  test("форма с ошибками полей", async ({ page }) => {
+      33    await openLanding(page);
+      34    const lead = leadForm(page);
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ Порт 3000 занят рабочим next dev, поэтому поднимаю e2e-тесты на отдельном
+  прод-сервере на порту 3100 с тестовой базой и пустыми TELEGRAM_*.
+
+⏺ Stop Task
+  ⎿  pnpm start -p 3100 · stopped
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Сборка и lint/typecheck зелёные. Запускаю полный e2e против прод-сервера на
+  3100.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ 43 зелёных, 1 skip — существующий тест мобильной плашки на десктопе. Теперь
+  смотрю вёрстку /privacy и 404 на 390 и 1440.
+
+  Read 3 files, ran 1 shell command (ctrl+o to expand)
+
+⏺ Вёрстка в порядке на обеих ширинах. Останавливаю сервер, дописываю NOTES и
+  .env.example, затем коммиты.
+
+⏺ Stop Task
+  ⎿  DATABASE_URL=postgres://kvarta:kvarta@localhost:5433/kvarta_test
+     TELEGRAM_BOT_TOKEN= TELEGRAM_CHAT_ID=
+     NEXT_PUBLIC_SITE_URL=http://localhost:3100 pnpm start -p… · stopped
+
+⏺ Bash(python3 - <<'EOF'
+      p='.env.example'…)
+  ⎿   M .env.example
+      M NOTES.md
+      M app/favicon.ico
+     … +22 lines (ctrl+o to expand)
+  ⎿  Updated .env.example (+2 -1)
+      17  TELEGRAM_BOT_TOKEN=
+      18  TELEGRAM_CHAT_ID=
+      19  
+      20 -# Адрес сайта для metadata и OG                                
+      20 +# Адрес сайта для metadata, OG, sitemap и JSON-LD. На Vercel мо
+         +жно не задавать –                                              
+      21 +# возьмётся прод-адрес проекта (VERCEL_PROJECT_PRODUCTION_URL).
+      22  NEXT_PUBLIC_SITE_URL=http://localhost:3000
+  ⎿  Updated NOTES.md (+1 -0)
+      22  - Шаг 9: e2e идут через настоящий API в `kvarta_test` (не в баз
+          у из `.env.local`), сбои – через `page.route`. Чтобы тесты не м
+          ешали друг другу и не упирались в защиту: у каждого теста свой 
+          `x-forwarded-for` (лимит 5 в час) и свой номер (дедуп 10 мин), 
+          а `page.clock.setFixedTime(-10 с)` – иначе сервер считает быстр
+          ую форму ботом и отвечает тихим 201 без записи. Успех доказывае
+          м повтором того же номера: 200 duplicate бывает только при запи
+          си в базу. Мобильный проект – WebKit (iPhone 13), в CI – прод-с
+          борка через `next start`. Мутационная проверка: без защиты от д
+          войного клика, с новым ключом на «Повторить», с плашкой поверх 
+          формы и без сдвига времени падает свой тест.
+      23  - Шаг 9: доступное имя кнопки на карточке – «Заказать : Колумби
+          я Уила» (sr-only-спан внутри `inline-flex` становится отдельным
+           элементом). Скринридеру не мешает, не правили. Проверку заголо
+          вков ответа главной (раздел 10) добавим в шаге 11 вместе с сами
+          ми заголовками.
+      24  - Шаг 10: `notifyTelegram` в `lib/lead/telegram.ts` без Next – 
+          env и `fetch` передаются параметрами; в `route.ts` его зовёт `a
+          fter()` только для новой заявки (дубли, боты, 429 не шлют). Тай
+          маут 5 с на попытку, один повтор только при сбое сети, 429 и 5x
+          x: 4xx («chat not found», бот удалён из группы) повтором не исп
+          равить. Ошибка в лог – без токена (он в адресе запроса). Click 
+          id без UTM в сообщении – «реклама (fbclid)», а не «прямой заход
+          ». В integration-тестах `after()` подменён очередью (`tests/int
+          egration/setup.ts`) – тест сам решает, когда выполнить задачи, 
+          и проверяет, что ответ не ждал Telegram. E2e и integration запу
+          скаются с пустыми `TELEGRAM_*`: проверили, что `@next/env` не п
+          ерезаписывает пустую переменную значением из `.env.local`. Смоу
+          к на `next start` с фальшивым токеном: 201, затем `telegram_sta
+          tus = failed` и `HTTP 401` в логе.
+      25 +- Шаг 11: OG-картинка и иконки – статичные файлы в `app/` (`ope
+         +ngraph-image.jpg`, `icon.svg`, `apple-icon.png`, `favicon.ico`)
+         +, их собирает `scripts/brand-assets.mjs` через Playwright из `c
+         +ontent.ts`. `next/og` не взяли: для кириллицы ему нужны файлы ш
+         +рифтов в репозитории. Файловая картинка даёт хеш в адресе – Tel
+         +egram перечитает превью после замены. Next сливает `metadata` п
+         +оверхностно: свой `openGraph` на `/privacy` терял картинку, `og
+         +:type` и `locale` – общая часть вынесена в `lib/metadata.ts`. З
+         +аголовки безопасности только в production (`next dev` работает 
+         +через eval); e2e проверяет их и отсутствие ошибок CSP на прод-с
+         +борке. Chromium снимает непрозрачный скриншот как RGB-PNG, а IC
+         +O-декодер Next принимает только RGBA – иконки рисуем через canv
+         +as. В политике обещано удаление через 12 месяцев – автоматическ
+         +ой чистки в коде нет, для учебного проекта не делаем.          
+
+⏺ Полный прогон Vitest (unit + integration) перед коммитами:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Всё зелёное. Коммичу по частям.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Коммиты готовы. Смотрю шаблон PR и образец (#6).
+
+  Created PR #15, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Шаг 11 готов, PR открыт: https://github.com/ahahaharu/kvarta-landing/pull/15
+
+  Что сделано:
+  - Metadata и превью ссылки: заголовок, описание, canonical, Open Graph на
+    ru_RU и карточка Twitter summary_large_image. Все тексты лежат в
+    lib/content.ts. Адрес сайта берётся из NEXT_PUBLIC_SITE_URL, а если её нет —
+    из прод-адреса Vercel, так что на Vercel эту переменную можно не задавать.
+  - OG-картинка 1200×630 (~100 КБ) и иконка «К» — обычные файлы в app/. Их
+    собирает команда node scripts/brand-assets.mjs из текстов content.ts. Если
+    тексты поменяются, достаточно запустить её снова. Если захочешь картинку из
+    макета, просто замени app/opengraph-image.jpg.
+  - JSON-LD CafeOrCoffeeShop с адресом и часами, плюс robots.txt и sitemap.xml.
+  - Страница /privacy (по разделу 10 ТЗ) и 404. Обе в стиле сайта, на 390 и 1440
+    px я их просмотрел.
+  - Заголовки безопасности из ТЗ. Они включаются только в прод-сборке, потому
+    что в next dev CSP ломает страницу.
+
+  Проверки: lint, typecheck и pnpm test (209) зелёные, сборка статическая.
+  Полный e2e на прод-сборке: 43 прошли, 1 пропущен (тест мобильной плашки на
+  десктопе, как и раньше). Новые e2e проверяют заголовки и отсутствие ошибок
+  CSP, OG-теги, JSON-LD, robots и sitemap, /privacy и 404, а axe проверяет обе
+  новые страницы.
+
+  Что важно знать:
+  - На порту 3000 у тебя работает next dev с рабочей базой и Telegram. Я его не
+    трогал, а e2e гонял на отдельном сервере (порт 3100) с тестовой базой и
+    выключенным Telegram.
+  - В политике написано, что данные хранятся 12 месяцев, но автоматического
+    удаления в коде нет. Я отметил это в NOTES.md.
+  - После мержа проверь вручную: превью прод-ссылки в Telegram и Viber и
+    заголовки на securityheaders.com. Эти пункты отмечены в PR как
+    непроверенные.
+
+✻ Crunched for 11m 28s · done Friday 5:24 PM
+
+❯ [Image #4] мне кажется должно не так отображаться                             
+  ⎿  [Image #4]
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Прод уже отдаёт правильное превью, а Telegram показывает свою старую копию.
+
+  Что на проде сейчас:
+  - title и og:title: «Кварта – свежеобжаренный кофе в Минске».
+  - og:image указывает на opengraph-image.jpg, файл открывается: 200,
+    image/jpeg, ~100 КБ.
+
+  Почему так вышло. На скриншоте старые тексты из заглушки шага 1: «Кварта /
+  Обжарка кофе в Минске». PR смержен в 17:27 по Минску. По заголовку age новая
+  версия появилась на Vercel примерно в 17:27:53, а ссылку ты отправил в 17:28.
+  Похоже, Telegram запросил страницу, когда новый деплой ещё не раздавался, и
+  запомнил старую версию. Обновлять превью сам он будет нескоро.
+
+  Как обновить:
+  1. Напиши боту @WebpageBot и отправь ему https://kvarta-landing.vercel.app/.
+     Он заново прочитает страницу и покажет новое превью.
+  2. Отправь ссылку в чат ещё раз. Старое сообщение останется со старым превью,
+     оно не меняется.
+
+  Должны появиться заголовок «Кварта – свежеобжаренный кофе в Минске», описание
+  про четверг/пятницу и подписку и большая картинка с hero-фото. Если после
+  @WebpageBot превью всё ещё без картинки, пришли скриншот, будем разбираться
+  дальше.
+
+  В Viber такой команды нет. Если он тоже закэшировал старую версию, можно
+  временно отправлять ссылку с параметром, например
+  https://kvarta-landing.vercel.app/?v=2.
+
+✻ Sautéed for 28s · done Friday 5:29 PM
+
+❯ [Image #5]                                                                    
+  ⎿  [Image #5]
+
+⏺ Оценка A — максимум для нашей схемы. Предупреждение про 'unsafe-inline' мы
+  ожидали: этот компромисс записан в ТЗ (раздел 10).
+
+  Почему оно есть. Next вставляет в HTML встроенные скрипты: данные React Server
+  Components (self.__next_f.push(...)) и загрузчик. Без 'unsafe-inline' браузер
+  их заблокирует, форма не гидратируется, и заявки перестанут работать. Это
+  ловит e2e-тест: на прод-сборке он проверяет, что ошибок CSP нет.
+
+  Как убрать и почему не стоит:
+  - Nonce. Каждый ответ получает свой nonce, поэтому Next рендерит страницу на
+    каждый запрос. Страница перестаёт быть статической (○), CDN её больше не
+    кэширует, ответ медленнее. Это бьёт по LCP и цели Lighthouse ≥ 95. Ради
+    оценки A+ это плохой размен.
+  - Хеши встроенных скриптов. Их можно посчитать после сборки, но содержимое
+    скриптов меняется с каждой сборкой, а Next такой режим не поддерживает.
+    Получится хрупкий самописный пост-процессинг.
+
+  Чем риск закрыт без этого:
+  - сторонних скриптов на странице нет, default-src 'self';
+  - пользовательские данные React экранирует сам;
+  - dangerouslySetInnerHTML есть только у JSON-LD из констант, < там
+    экранирован;
+  - object-src 'none', base-uri 'self', frame-ancestors 'none'.
+
+  Предлагаю оставить как есть. В README (шаг 14) запишем компромисс и приложим
+  этот скриншот как результат проверки. Если хочешь, добавлю сейчас строку в
+  NOTES.md: securityheaders.com — A, ограничение из-за 'unsafe-inline', nonce не
+  берём, потому что страница должна остаться статической.
+
+✻ Brewed for 29s · done Friday 5:33 PM

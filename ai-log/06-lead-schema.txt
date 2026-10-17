@@ -1,0 +1,467 @@
+ ▐▛███▛█   Claude Code v2.1.281
+▝▜██████▀  Opus 5.5 · Claude Pro
+  ▝▝ ▝▝    ~/Documents/Programming/kvarta-landing
+
+
+❯ /clear                                                                        
+
+❯ перейдём к этапу 6                                                            
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+⏺ Bash(git checkout -q main && git pull -q --ff-only && git checkout -b
+      feat/lead-schema && node -e
+      "console.log(require('zod/package.json').version)" && node --input-…)
+  ⎿  Switched to a new branch 'feat/lead-schema'
+     4.6.7
+     ZodMiniBigInt ZodMiniBigIntFormat ZodMiniCatch ZodMiniDefault ZodMiniE
+     … +9 lines (ctrl+o to expand)
+  ⎿  Updated CLAUDE.md (+1 -0)
+      24  ## Как работаем
+      25  
+      26  - Пользователь пишет «шаг N» → найди строку N в таблице «План в
+          еток» (`docs/SPEC.md`, раздел 12), прочитай связанные разделы Т
+          З, создай ветку из свежего `main`, сделай шаг, закоммить по-час
+          тям (Conventional Commits на английском), запушь и открой PR че
+          рез `gh pr create`.
+      27 +- Описание PR – по `.github/pull_request_template.md` (образец 
+         +– PR #6).                                                      
+      28  - Крупные шаги (7, 8) – сначала план, потом код.
+      29  - Не коммить в `main`, не делай force push, не мержи PR сам – э
+          то делает пользователь.
+      30  - Шаг готов, когда: `pnpm lint`, `pnpm typecheck`, тесты зелёны
+          е; вёрстка проверена на 390 px.
+
+⏺ Ветка feat/lead-schema создана. Пишу lib/lead/phone.ts и zod-схему, потом
+  unit-тесты.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Поведение zod/mini подтвердилось (trim срабатывает до проверки длины, catch
+  работает для полей атрибуции). Пишу код.
+
+⏺ Update(lib/content.ts)
+  ⎿  Added 5 lines
+      278        link: "обработку персональных данных",
+      279        href: "/privacy",
+      280      },
+      281 +    errors: {                                                 
+      282 +      name: "Напишите, как к вам обращаться",                 
+      283 +      phone: "Нужен белорусский мобильный, например +375 29 12
+          +3-45-67",                                                     
+      284 +      comment: "Не больше 500 символов",                      
+      285 +    },                                                        
+      286      status: {
+      287        successTitle: (name: string) => `Спасибо, ${name}!`,
+      288        successText: (phone: string) => `Перезвоним на ${phone}`
+           ,
+
+⏺ Write(lib/lead/phone.ts)
+  ⎿  Wrote 49 lines to lib/lead/phone.ts
+       1 // Белорусские мобильные номера (ТЗ, раздел 5). Без зависимостей
+          от React –
+       2 // одни и те же функции работают в форме и в Route Handler.
+       4 const MOBILE_CODES = ["25", "29", "33", "44"];
+       5 
+       6 // Разделители, которые человек ставит сам или приносит при вста
+         вке
+       8 
+       9 /**
+      10  * Приводит номер к виду `+375XXXXXXXXX` или возвращает `null`.
+     … +44 lines (ctrl+o to expand)
+
+⏺ Write(lib/lead/schema.ts)
+  ⎿  Wrote 129 lines to lib/lead/schema.ts
+      1 // Схема заявки (ТЗ, разделы 5, 6, 8, 10). Общая для формы и POST
+         /api/lead:
+      2 // сервер повторяет ту же валидацию и отдаёт те же тексты ошибок.
+         формы,
+      4 // а бюджет клиентского JS – 15 КБ gzip.
+      5 import * as z from "zod/mini";
+      6 import { interestLabels, order, type Interest } from "@/lib/conte
+      7 import { normalizeByPhone } from "./phone";
+      8 
+      9 const errors = order.form.errors;
+     … +130 lines (ctrl+o to expand)
+
+⏺ Теперь тесты.
+
+⏺ Write(tests/unit/phone.test.ts)
+  ⎿  Wrote 48 lines to tests/unit/phone.test.ts
+       1 import { describe, expect, it } from "vitest";
+       2 import { formatByPhone, maskPhone, normalizeByPhone } from "@/li
+         b/lead/phone";
+       3 
+       4 describe("normalizeByPhone", () => {
+       6     ["+375 29 123-45-67", "+375291234567"],
+       7     ["+375291234567", "+375291234567"],
+       8     ["375291234567", "+375291234567"],
+       9     ["80291234567", "+375291234567"],
+      10     ["8 (029) 123-45-67", "+375291234567"],
+     … +40 lines (ctrl+o to expand)
+
+⏺ Write(tests/unit/lead-schema.test.ts)
+  ⎿  Wrote 192 lines to tests/unit/lead-schema.test.ts
+       1 import { describe, expect, it } from "vitest";
+       2 import { order } from "@/lib/content";
+       3 import { emptyAttribution, parseLead } from "@/lib/lead/schema";
+       4 
+       5 const errors = order.form.errors;
+       6 
+       7 const valid = {
+       8   name: "Анна",
+       9   phone: "+375 29 123-45-67",
+      10   interest: "subscription",
+     … +200 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Все 70 тестов прошли успешно. Теперь проверю lint/typecheck, а также уточню,
+  действительно ли zod/mini заметно легче полного zod, как утверждается в
+  комментарии к схеме.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Схема целиком весит 15 КБ gzip, хотя zod/mini — всего 4,8 КБ. Выясняю, откуда
+  взялось остальное.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Нашёл причину разбухания бандла: zod/mini и lib/content.ts съедают почти весь
+  бюджет клиентского JS (15 КБ). Переделываю — выношу правила валидации в
+  отдельный модуль без zod для формы, а schema.ts с обычным zod оставляю только
+  для сервера.
+
+⏺ Write(lib/lead/rules.ts)
+  ⎿  Wrote 18 lines to lib/lead/rules.ts
+      1 // Правила полей заявки без zod (ТЗ, раздел 5). Их же использует 
+        schema.ts.
+      2 // Форма проверяет поля на blur через этот модуль: zod на клиенте
+         съел бы
+      3 // бо́льшую часть бюджета клиентского JS (15 КБ gzip).
+      5 export { normalizeByPhone } from "./phone";
+      6 
+      7 export const NAME_MIN = 2;
+      8 export const NAME_MAX = 60;
+      9 export const COMMENT_MAX = 500;
+     … +10 lines (ctrl+o to expand)
+
+⏺ Write(lib/lead/schema.ts)
+  ⎿  Added 34 lines, removed 49 lines
+       1 -// Схема заявки (ТЗ, разделы 5, 6, 8, 10). Общая для формы и PO
+         -ST /api/lead:                                                  
+       2 -// сервер повторяет ту же валидацию и отдаёт те же тексты ошибо
+         -к.                                                             
+       3 -// zod/mini вместо полного zod – схема попадёт в клиентский бан
+         -дл формы,                                                      
+       4 -// а бюджет клиентского JS – 15 КБ gzip.                       
+       5 -import * as z from "zod/mini";                                 
+       1 +// Схема заявки для POST /api/lead (ТЗ, разделы 5, 6, 8, 10). С
+         +ервер не доверяет                                              
+       2 +// клиенту и повторяет всю валидацию; правила полей – из rules.
+         +ts, тексты – из content.ts.                                    
+       3 +// Только для сервера: в форму импортируем rules.ts, а не этот 
+         +файл (zod – ~25 КБ gzip).                                      
+       4 +import { z } from "zod";                                       
+       5  import { interestLabels, order, type Interest } from "@/lib/con
+          tent";
+       7 -import { normalizeByPhone } from "./phone";                    
+       6 +import { COMMENT_MAX, NAME_MAX, NAME_MIN, normalizeByPhone } fr
+         +om "./rules";                                                  
+       7  
+       8  const errors = order.form.errors;
+       9  
+     ...
+      14  
+      15  export const CLICK_ID_TYPES = ["yclid", "fbclid", "gclid"] as c
+          onst;
+      16  
+      18 -export const NAME_MIN = 2;                                     
+      19 -export const NAME_MAX = 60;                                    
+      20 -export const COMMENT_MAX = 500;                                
+      17  export const ATTRIBUTION_MAX = 500;
+      18  // С запасом на скобки, пробелы и дефисы вокруг 12 цифр
+      19  const PHONE_RAW_MAX = 32;
+      20  const HONEYPOT_MAX = 500;
+      21  
+      26 -const name = z                                                 
+      27 -  .string({ error: errors.name })                              
+      28 -  .check(                                                      
+      29 -    z.trim(),                                                  
+      30 -    z.minLength(NAME_MIN, { error: errors.name }),             
+      31 -    z.maxLength(NAME_MAX, { error: errors.name }),             
+      32 -  );                                                           
+      33 -                                                               
+      34 -const phone = z.pipe(                                          
+      35 -  z.string({ error: errors.phone }).check(                     
+      36 -    z.maxLength(PHONE_RAW_MAX, { error: errors.phone }),       
+      37 -    z.refine((v) => normalizeByPhone(v) !== null, { error: erro
+         -rs.phone }),                                                   
+      38 -  ),                                                           
+      39 -  z.transform((v) => normalizeByPhone(v) as string),           
+      40 -);                                                             
+      41 -                                                               
+      42 -const comment = z                                              
+      43 -  .string({ error: errors.comment })                           
+      44 -  .check(z.trim(), z.maxLength(COMMENT_MAX, { error: errors.com
+         -ment }));                                                      
+      45 -                                                               
+      22  // Атрибуция не должна стоить заявки: кривое значение → null, д
+          линное – обрезаем
+      47 -const attrText = z.catch(                                      
+      48 -  z.nullable(                                                  
+      49 -    z.pipe(                                                    
+      50 -      z.string(),                                              
+      51 -      z.transform((v) => v.trim().slice(0, ATTRIBUTION_MAX) || 
+         -null),                                                         
+      52 -    ),                                                         
+      53 -  ),                                                           
+      54 -  null,                                                        
+      55 -);                                                             
+      23 +const attrText = z                                             
+      24 +  .string()                                                    
+      25 +  .transform((v) => v.trim().slice(0, ATTRIBUTION_MAX) || null)
+      26 +  .nullable()                                                  
+      27 +  .catch(null);                                                
+      28  
+      29  const attributionSchema = z.object({
+      30    utm_source: attrText,
+     ...
+      33    utm_content: attrText,
+      34    utm_term: attrText,
+      35    click_id: attrText,
+      64 -  click_id_type: z.catch(z.nullable(z.enum(CLICK_ID_TYPES)), nu
+         -ll),                                                           
+      36 +  click_id_type: z.enum(CLICK_ID_TYPES).nullable().catch(null),
+      37    referrer: attrText,
+      38    landing_url: attrText,
+      39    page_url: attrText,
+      68 -  first_seen_at: z.catch(z.nullable(z.iso.datetime()), null),  
+      40 +  first_seen_at: z.iso.datetime().nullable().catch(null),      
+      41  });
+      42  
+      43  export type Attribution = z.output<typeof attributionSchema>;
+     ...
+       57  };
+       58  
+       59  export const leadSchema = z.strictObject({
+       88 -  name,                                                       
+       89 -  phone,                                                      
+       90 -  interest: z._default(z.enum(INTERESTS), "subscription"),    
+       91 -  comment: z._default(comment, ""),                           
+       60 +  name: z                                                     
+       61 +    .string({ error: errors.name })                           
+       62 +    .trim()                                                   
+       63 +    .min(NAME_MIN, { error: errors.name })                    
+       64 +    .max(NAME_MAX, { error: errors.name }),                   
+       65 +  phone: z                                                    
+       66 +    .string({ error: errors.phone })                          
+       67 +    .max(PHONE_RAW_MAX, { error: errors.phone })              
+       68 +    .refine((v) => normalizeByPhone(v) !== null, { error: erro
+          +rs.phone })                                                   
+       69 +    .transform((v) => normalizeByPhone(v) as string),         
+       70 +  interest: z.enum(INTERESTS).default("subscription"),        
+       71 +  comment: z                                                  
+       72 +    .string({ error: errors.comment })                        
+       73 +    .trim()                                                   
+       74 +    .max(COMMENT_MAX, { error: errors.comment })              
+       75 +    .default(""),                                             
+       76    // Honeypot: валиден любой текст, решение «тихий 201» приним
+           ает сервер
+       93 -  website: z._default(z.string().check(z.maxLength(HONEYPOT_MA
+          -X)), ""),                                                     
+       77 +  website: z.string().max(HONEYPOT_MAX).default(""),          
+       78    idempotencyKey: z.uuid(),
+       79    // Время открытия формы, мс с эпохи: младше 3 с → бот (разде
+           л 10)
+       96 -  startedAt: z.int().check(z.minimum(0)),                     
+       97 -  attribution: z.catch(attributionSchema, emptyAttribution),  
+       80 +  startedAt: z.int().nonnegative(),                           
+       81 +  attribution: attributionSchema.catch(emptyAttribution),     
+       82  });
+       83  
+       84  export type LeadInput = z.input<typeof leadSchema>;
+     ...
+       87  /** Поле → первый текст ошибки. Лишние ключи тоже попадают сюд
+           а (раздел 10). */
+       88  export type FieldErrors = Record<string, string>;
+       89  
+      106 -export function toFieldErrors(error: z.core.$ZodError): FieldE
+          -rrors {                                                       
+       90 +export function toFieldErrors(error: z.ZodError): FieldErrors 
+          +{                                                             
+       91    const fields: FieldErrors = {};
+       92    for (const issue of error.issues) {
+       93      const keys =
+     ...
+      100  }
+      101  
+      102  export type ParseLeadResult =
+      119 -  { ok: true; data: Lead } | { ok: false; fields: FieldErrors 
+          -};                                                            
+      103 +  | { ok: true; data: Lead }                                  
+      104 +  | { ok: false; fields: FieldErrors };                       
+      105  
+      106  export function parseLead(input: unknown): ParseLeadResult {
+      107    const result = leadSchema.safeParse(input);
+
+⏺ Добавляю тесты для rules.ts и прогоняю всё заново.
+
+⏺ Bash(cat >> tests/unit/phone.test.ts <<'EOF'…)
+  ⎿   RUN  v5.0.4 /Users/andrey/Documents/Programming/kvarta-landing
+
+     ······································································
+     … +9 lines (ctrl+o to expand)
+  ⎿  Created tests/unit/lead-rules.test.ts (+62 -0)
+       1 +import { describe, expect, it } from "vitest";                 
+       2 +import { formatByPhone, maskPhone, normalizeByPhone } from "@/l
+         +ib/lead/phone";                                                
+       3 +import { isValidComment, isValidName } from "@/lib/lead/rules";
+       4 +                                                               
+       5 +describe("normalizeByPhone", () => {                           
+       6 +  it.each([                                                    
+       7 +    ["+375 29 123-45-67", "+375291234567"],                    
+       8 +    ["+375291234567", "+375291234567"],                        
+       9 +    ["375291234567", "+375291234567"],                         
+      10 +    ["80291234567", "+375291234567"],                          
+      11 +    ["8 (029) 123-45-67", "+375291234567"],                    
+      12 +    ["291234567", "+375291234567"],                            
+      13 +    ["+375 (29) 123 45 67", "+375291234567"],                  
+      14 +    ["  +375 25 123-45-67  ", "+375251234567"],                
+      15 +    ["+375 33 123-45-67", "+375331234567"],                    
+      16 +    ["8 044 765 43 21", "+375447654321"],                      
+      17 +  ])("accepts %j", (input, expected) => {                      
+      18 +    expect(normalizeByPhone(input)).toBe(expected);            
+      19 +  });                                                          
+      20 +                                                               
+      21 +  it.each([                                                    
+      22 +    ["", "пусто"],                                             
+      23 +    ["+375 17 123-45-67", "городской Минск"],                  
+      24 +    ["80171234567", "городской через 8"],                      
+      25 +    ["+375 24 123-45-67", "несуществующий код оператора"],     
+      26 +    ["+7 912 123-45-67", "Россия"],                            
+      27 +    ["+48 512 345 678", "Польша"],                             
+      28 +    ["+375 29 123-45-6", "не хватает цифры"],                  
+      29 +    ["+375 29 123-45-678", "лишняя цифра"],                    
+      30 +    ["29123456", "8 цифр"],                                    
+      31 +    ["+291234567", "плюс без кода страны"],                    
+      32 +    ["+80291234567", "плюс перед 8"],                          
+      33 +    ["+375 29 123-45-6a", "буква"],                            
+      34 +    ["+375 29 123.45.67", "точки"],                            
+      35 +    ["375+291234567", "плюс в середине"],                      
+      36 +  ])("rejects %j (%s)", (input) => {                           
+      37 +    expect(normalizeByPhone(input)).toBeNull();                
+      38 +  });                                                          
+      39 +});                                                            
+      40 +                                                               
+     … 22 more lines (ctrl+o to expand)
+  ⎿  Deleted tests/unit/phone.test.ts (+0 -48)
+       1 -import { describe, expect, it } from "vitest";                 
+       2 -import { formatByPhone, maskPhone, normalizeByPhone } from "@/l
+         -ib/lead/phone";                                                
+       3 -                                                               
+       4 -describe("normalizeByPhone", () => {                           
+       5 -  it.each([                                                    
+       6 -    ["+375 29 123-45-67", "+375291234567"],                    
+       7 -    ["+375291234567", "+375291234567"],                        
+       8 -    ["375291234567", "+375291234567"],                         
+       9 -    ["80291234567", "+375291234567"],                          
+      10 -    ["8 (029) 123-45-67", "+375291234567"],                    
+      11 -    ["291234567", "+375291234567"],                            
+      12 -    ["+375 (29) 123 45 67", "+375291234567"],                  
+      13 -    ["  +375 25 123-45-67  ", "+375251234567"],                
+      14 -    ["+375 33 123-45-67", "+375331234567"],                    
+      15 -    ["8 044 765 43 21", "+375447654321"],                      
+      16 -  ])("accepts %j", (input, expected) => {                      
+      17 -    expect(normalizeByPhone(input)).toBe(expected);            
+      18 -  });                                                          
+      19 -                                                               
+      20 -  it.each([                                                    
+      21 -    ["", "пусто"],                                             
+      22 -    ["+375 17 123-45-67", "городской Минск"],                  
+      23 -    ["80171234567", "городской через 8"],                      
+      24 -    ["+375 24 123-45-67", "несуществующий код оператора"],     
+      25 -    ["+7 912 123-45-67", "Россия"],                            
+      26 -    ["+48 512 345 678", "Польша"],                             
+      27 -    ["+375 29 123-45-6", "не хватает цифры"],                  
+      28 -    ["+375 29 123-45-678", "лишняя цифра"],                    
+      29 -    ["29123456", "8 цифр"],                                    
+      30 -    ["+291234567", "плюс без кода страны"],                    
+      31 -    ["+80291234567", "плюс перед 8"],                          
+      32 -    ["+375 29 123-45-6a", "буква"],                            
+      33 -    ["+375 29 123.45.67", "точки"],                            
+      34 -    ["375+291234567", "плюс в середине"],                      
+      35 -  ])("rejects %j (%s)", (input) => {                           
+      36 -    expect(normalizeByPhone(input)).toBeNull();                
+      37 -  });                                                          
+      38 -});                                                            
+      39 -                                                               
+      40 -describe("formatByPhone / maskPhone", () => {                  
+     … 8 more lines (ctrl+o to expand)
+
+⏺ Всё зелёное, а rules.ts в клиентском бандле весит 338 байт gzip. Записываю
+  решение в NOTES.md и коммичу по частям.
+
+⏺ Bash(python3 - <<'EOF'
+      p='NOTES.md'; s=open(p).read()…)
+  ⎿   NOTES.md | 2 +-
+      1 file changed, 1 insertion(+), 1 deletion(-)
+     f8ef92e docs(notes): record why zod stays on the server
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated NOTES.md (+1 -1)
+      11  
+      12  ## Решения по ходу
+      13  
+      14 --                                                              
+      14 +- Шаг 6: zod только на сервере (`lib/lead/schema.ts`), форма пр
+         +оверяет поля через `lib/lead/rules.ts` без zod. Замер esbuild: 
+         +полный zod ~25 КБ gzip, даже `zod/mini` со схемой ~10 КБ – почт
+         +и весь бюджет клиентского JS (15 КБ); `rules.ts` – 0,3 КБ. Атри
+         +буция не валит заявку: кривые поля → `null`, длинные обрезаются
+         + до 500 символов.                                              
+      15  
+      16  ## Расход токенов (/cost в конце сессии)
+      17  
+
+⏺ Теперь PR по шаблону.
+
+  Created PR #8, ran 1 shell command (ctrl+o to expand)
+⏺ Шаг 6 готов, PR открыт: https://github.com/ahahaharu/kvarta-landing/pull/8
+  (ветка feat/lead-schema, три коммита). Все 72 unit-теста, pnpm lint и pnpm 
+  typecheck проходят.
+
+  Что сделано
+  - lib/lead/phone.ts: normalizeByPhone() приводит номер к +375XXXXXXXXX или
+    возвращает null. Он принимает все пять форматов из ТЗ, а также неразрывные
+    пробелы, которые подставляет автозаполнение. Городские номера, чужие коды
+    стран, лишние или недостающие цифры и буквы отклоняются. Рядом лежат
+    formatByPhone для форматирования на blur и maskPhone для логов (+375 29 
+    ***-**-67).
+  - lib/lead/schema.ts — схема запроса из раздела 6:
+    - Лишние поля дают 400.
+    - Телефон после проверки сразу нормализуется.
+    - idempotencyKey принимается только как UUID.
+    - startedAt — целое число мс, это нужно для проверки «моложе 3 с» в шаге 7.
+    - Honeypot считается валидным с любым текстом: тихий 201 решает сервер.
+    - parseLead() возвращает либо данные, либо готовое тело для ответа 400.
+  - Атрибуция никогда не ломает заявку. Каждое поле обрезается до 500 символов,
+    неверные значения становятся null, неизвестные ключи отбрасываются.
+  - Тексты ошибок перенёс в content.ts, в order.form.errors. В разделе 3 ТЗ
+    сказано держать их в schema.ts, но правило CLAUDE.md «все тексты — в
+    content.ts» строже.
+
+  Отклонение от первоначального плана. Сначала я написал схему на zod/mini,
+  чтобы форма могла её переиспользовать. Замер через esbuild это опроверг:
+  zod/mini вместе со схемой весит около 10 КБ gzip (полный zod — около 25 КБ), а
+  бюджет клиентского JS всего 15 КБ. Поэтому zod теперь работает только на
+  сервере. Форма в шаге 8 будет проверять поля через lib/lead/rules.ts: это
+  лимиты длины плюс normalizeByPhone, весом 0,3 КБ. Решение записал в NOTES.md.
+
+  Что важно для шага 8. Если клиентский компонент импортирует lib/content.ts, в
+  бандл попадёт весь файл, около 5 КБ gzip: tree-shaking его не вырезает. Тексты
+  лучше передавать в LeadForm пропсами из серверного родителя.
+
+  PR мержишь ты. Когда закончишь сессию, запусти /cost, чтобы добавить строку в
+  таблицу расхода токенов в NOTES.md.
+
+✻ Brewed for 4m 7s · done Thursday 11:08 PM

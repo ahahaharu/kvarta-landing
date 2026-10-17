@@ -1,0 +1,977 @@
+ ▐▛███▛█   Claude Code v2.1.281
+▝▜██████▀  Opus 5.5 · Claude Pro
+  ▝▝ ▝▝    ~/Documents/Programming/kvarta-landing
+
+
+❯ /clear                                                                        
+
+❯ перейдём к пункту 12                                                          
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Step 12 is feat/motion. Let me read the motion section of the spec and the
+  related code.
+
+  Searched for 2 patterns, listed 3 directories, ran 1 shell command (ctrl+o to expand)
+
+⏺ Шаг 12 – feat/motion (анимации + reduced motion). Изучил ТЗ и текущий код,
+  сейчас сверяю кнопки с макетом и начинаю.
+
+  Read 2 files, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Начинаю: ветка feat/motion от свежего main.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Write(lib/motion.ts)
+  ⎿  Wrote 4 lines to lib/motion.ts
+      1 // То же условие, что у motion-safe в CSS: анимации из JS проверя
+        ют его сами
+      2 export function prefersReducedMotion(): boolean {
+      3   return matchMedia("(prefers-reduced-motion: reduce)").matches;
+      4 }
+
+⏺ Write(components/Reveal.tsx)
+  ⎿  Wrote 44 lines to components/Reveal.tsx
+       1 "use client";
+       2 
+       3 import { useEffect } from "react";
+       5 
+       6 // Ступенька между блоками, которые вошли в экран одновременно
+       7 const STEP_MS = 60;
+       8 
+          один
+      10 // IntersectionObserver на страницу, сама анимация – в globals.c
+         ss.
+     … +38 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='app/globals.css'…)
+  ⎿  Updated app/globals.css (+33 -0)
+      30    --font-mono: var(--font-jetbrains-mono);
+      31  }
+      32  
+      33 +/* Смена формы на карточку успеха (ТЗ, раздел 11) */           
+      34 +@theme {                                                       
+      35 +  --animate-fade-in: fade-in 250ms ease-out;                   
+      36 +                                                               
+      37 +  @keyframes fade-in {                                         
+      38 +    from {                                                     
+      39 +      opacity: 0;                                              
+      40 +    }                                                          
+      41 +  }                                                            
+      42 +}                                                              
+      43 +                                                               
+      44  /* Жёсткие тени без размытия: мобильная 9/6/5 px, с md – 12/8/6
+           px */
+      45  @utility shadow-hard-lg {
+      46    box-shadow: 9px 9px 0 var(--color-ink);
+     ...
+      151      outline-offset: 3px;
+      152    }
+      153  
+      154 +  /*                                                          
+      155 +   * Появление блоков при прокрутке: data-reveal расставляет c
+          +omponents/Reveal.tsx.                                         
+      156 +   * Только transform и opacity – без сдвигов вёрстки. Hover к
+          +арточек двигает                                               
+      157 +   * свойство translate, поэтому с анимацией transform они не 
+          +спорят                                                        
+      158 +   */                                                         
+      159 +  @media screen and (prefers-reduced-motion: no-preference) { 
+      160 +    [data-reveal="pending"] {                                 
+      161 +      opacity: 0;                                             
+      162 +    }                                                         
+      163 +                                                              
+      164 +    [data-reveal="shown"] {                                   
+      165 +      animation: reveal 450ms ease-out backwards;             
+      166 +    }                                                         
+      167 +  }                                                           
+      168 +                                                              
+      169    ::selection {
+      170      background-color: var(--color-orange);
+      171      color: var(--color-ink);
+      172    }
+      173  }
+     … 7 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      import re…)
+  ⎿   app/api/lead/route.ts                |  6 +-----
+      app/globals.css                      | 33 +++++++++++++++++++++++++++
+     ++++++
+     … +9 lines (ctrl+o to expand)
+  ⎿  Updated app/api/lead/route.ts (+1 -5)
+      37  }
+      38  
+      39  // Дубли и ботов сюда не пускаем: сообщение – только о новой за
+          явке
+      40 -async function notifyManager(                                  
+      41 -  id: string,                                                  
+      42 -  lead: Lead,                                                  
+      43 -  userAgent: string | null,                                    
+      44 -) {                                                            
+      40 +async function notifyManager(id: string, lead: Lead, userAgent:
+         + string | null) {                                              
+      41    const { status, error } = await notifyTelegram({ ...lead, use
+          rAgent });
+      42    log({ event: "telegram", outcome: status, id, message: error 
+          });
+      43    try {
+  ⎿  Updated app/page.tsx (+2 -0)
+       6  import { Header } from "@/components/sections/Header";
+       7  import { Hero } from "@/components/sections/Hero";
+       8  import { Order } from "@/components/sections/Order";
+       9 +import { Reveal } from "@/components/Reveal";                  
+      10  import { Subscription } from "@/components/sections/Subscriptio
+          n";
+      11  import { coffeeShopJsonLd, serializeJsonLd } from "@/lib/jsonld
+          ";
+      12  import { siteUrl } from "@/lib/site";
+     ...
+      25        </main>
+      26        <Footer />
+      27        <MobileBar />
+      28 +      <Reveal />                                               
+      29        <script
+      30          type="application/ld+json"
+      31          // Данные только из content.ts, «<» экранирован в seria
+          lizeJsonLd
+  ⎿  Updated components/sections/Catalog.tsx (+7 -2)
+      20        aria-labelledby="coffee-title"
+      21        className="container-page py-12 lg:py-22"
+      22      >
+      23 -      <div className="flex flex-col gap-2 lg:flex-row lg:items-
+         -end lg:justify-between lg:gap-8">                              
+      23 +      <div                                                     
+      24 +        data-reveal                                            
+      25 +        className="flex flex-col gap-2 lg:flex-row lg:items-end
+         + lg:justify-between lg:gap-8"                                  
+      26 +      >                                                        
+      27          <h2 id="coffee-title" className="type-h2">
+      28            {coffee.title}
+      29          </h2>
+     ...
+      38              <Card
+      39                key={item.number}
+      40                as="li"
+      41 +              data-reveal                                      
+      42                tone={style.card}
+      39 -              className="flex flex-col p-5 lg:p-6"             
+      43 +              // Подъём – только на устройствах с hover: hover:
+         + в Tailwind v4 их и ловит                                      
+      44 +              className="flex flex-col p-5 hover:-translate-y-1
+         + hover:shadow-hard-sm motion-safe:transition-[translate,box-sha
+         +dow] motion-safe:duration-150 lg:p-6"                          
+      45              >
+      46                <div className="flex items-center justify-between
+           gap-3">
+      47                  <span className="hidden font-mono text-xs font-
+          medium md:block">
+  ⎿  Updated components/sections/Founders.tsx (+9 -7)
+      12        aria-labelledby="founders-title"
+      13        className="container-page grid gap-9 py-12 md:grid-cols-[
+          5fr_4fr] md:items-center md:gap-10 lg:gap-14 lg:py-22"
+      14      >
+      15 -      <Photo                                                   
+      16 -        photo={founders.photo}                                 
+      17 -        sizes={PHOTO_SIZES}                                    
+      18 -        aspect="aspect-[4/3]"                                  
+      19 -        className="border-3 border-ink shadow-hard-lg"         
+      20 -      />                                                       
+      15 +      <div data-reveal>                                        
+      16 +        <Photo                                                 
+      17 +          photo={founders.photo}                               
+      18 +          sizes={PHOTO_SIZES}                                  
+      19 +          aspect="aspect-[4/3]"                                
+      20 +          className="border-3 border-ink shadow-hard-lg"       
+      21 +        />                                                     
+      22 +      </div>                                                   
+      23  
+      22 -      <div>                                                    
+      24 +      <div data-reveal>                                        
+      25          {/* На макете метка оранжевая, но мелкий оранжевый на б
+          умаге – 3,1:1 (ТЗ, раздел 9) */}
+      26          <p className="type-label text-brown">{founders.tag}</p>
+      27          <h2 id="founders-title" className="type-h2 mt-5">
+  ⎿  Updated components/sections/Freshness.tsx (+8 -2)
+      18        className="bg-ink py-12 text-paper [--focus-ring:var(--co
+          lor-paper)] lg:py-22"
+      19      >
+      20        <div className="container-page">
+      21 -        <p className="type-label text-orange">{freshness.tag}</
+         -p>                                                             
+      21 +        <p data-reveal className="type-label text-orange">     
+      22 +          {freshness.tag}                                      
+      23 +        </p>                                                   
+      24  
+      23 -        <div className="mt-5 grid gap-5 lg:mt-6 lg:grid-cols-[1
+         -fr_minmax(0,30rem)] lg:items-center lg:gap-16">                
+      25 +        <div                                                   
+      26 +          data-reveal                                          
+      27 +          className="mt-5 grid gap-5 lg:mt-6 lg:grid-cols-[1fr_
+         +minmax(0,30rem)] lg:items-center lg:gap-16"                    
+      28 +        >                                                      
+      29            <h2 id="freshness-title" className="type-h2">
+      30              {freshness.title}
+      31            </h2>
+     ...
+      42              return (
+      43                <li
+      44                  key={step.day}
+      45 +                data-reveal                                    
+      46                  className={cn(
+      47                    "border-2",
+      48                    isLast
+  ⎿  … 4 more files changed
+
+⏺ Prettier задел посторонние файлы – откатываю их.
+
+⏺ Bash(git checkout app/api/lead/route.ts lib/content.ts lib/lead/service.ts &&
+      git diff components/sections/Catalog.tsx components/sections/Founders.tsx
+      && cat packag…)
+  ⎿  Updated 3 paths from the index
+     diff --git a/components/sections/Catalog.tsx b/components/sections/Cat
+     alog.tsx
+     … +59 lines (ctrl+o to expand)
+  ⎿  Updated app/api/lead/route.ts (+5 -1)
+      37  }
+      38  
+      39  // Дубли и ботов сюда не пускаем: сообщение – только о новой за
+          явке
+      40 -async function notifyManager(id: string, lead: Lead, userAgent:
+         - string | null) {                                              
+      40 +async function notifyManager(                                  
+      41 +  id: string,                                                  
+      42 +  lead: Lead,                                                  
+      43 +  userAgent: string | null,                                    
+      44 +) {                                                            
+      45    const { status, error } = await notifyTelegram({ ...lead, use
+          rAgent });
+      46    log({ event: "telegram", outcome: status, id, message: error 
+          });
+      47    try {
+  ⎿  Updated lib/content.ts (+3 -1)
+      364    sections: [
+      365      {
+      366        title: "Кто обрабатывает данные",
+      367 -      text: [`Оператор – обжарка «${business.name}», ${busines
+          -s.address}.`],                                                
+      367 +      text: [                                                 
+      368 +        `Оператор – обжарка «${business.name}», ${business.add
+          +ress}.`,                                                      
+      369 +      ],                                                      
+      370      },
+      371      {
+      372        title: "Какие данные собираем",
+  ⎿  Updated lib/lead/service.ts (+1 -4)
+      119    id: string,
+      120    status: TelegramStatus,
+      121  ): Promise<void> {
+      122 -  await db                                                    
+      123 -    .update(leads)                                            
+      124 -    .set({ telegramStatus: status })                          
+      125 -    .where(eq(leads.id, id));                                 
+      122 +  await db.update(leads).set({ telegramStatus: status }).where
+          +(eq(leads.id, id));                                           
+      123  }
+
+⏺ Bash(python3 - <<'EOF'
+      def edit(p, pairs):…)
+  ⎿              <Card
+                   key={item.number}
+                   as="li"
+     … +10 lines (ctrl+o to expand)
+  ⎿  Updated components/sections/Catalog.tsx (+1 -1)
+      40                as="li"
+      41                data-reveal
+      42                tone={style.card}
+      43 -              // Подъём – только на устройствах с hover: hover:
+         - в Tailwind v4 их и ловит                                      
+      43 +              // hover: в Tailwind v4 – только для устройств с 
+         +наведением, на телефоне карточка не прыгает                    
+      44                className="flex flex-col p-5 hover:-translate-y-1
+           hover:shadow-hard-sm motion-safe:transition-[translate,box-sha
+          dow] motion-safe:duration-150 lg:p-6"
+      45              >
+      46                <div className="flex items-center justify-between
+           gap-3">
+  ⎿  Updated components/ui/Button.tsx (+4 -2)
+      30  }: ButtonStyleProps = {}): string {
+      31    return cn(
+      32      "inline-flex items-center justify-center border-3 border-in
+          k text-center leading-none",
+      33 -    "motion-safe:transition-[translate,box-shadow] motion-safe:
+         -duration-150",                                                 
+      34 -    "not-disabled:hover:-translate-0.5 not-disabled:hover:shado
+         -w-hard-sm not-disabled:active:translate-0 not-disabled:active:s
+         -hadow-none",                                                   
+      33 +    // Нажатие (ТЗ, раздел 11): при наведении под кнопкой тень 
+         +6 px,                                                          
+      34 +    // при нажатии кнопка сдвигается на её место и тень пропада
+         +ет                                                             
+      35 +    "motion-safe:transition-[translate,box-shadow] motion-safe:
+         +duration-80",                                                  
+      36 +    "not-disabled:hover:shadow-[6px_6px_0_var(--color-ink)] not
+         +-disabled:active:translate-1.5 not-disabled:active:shadow-none"
+         +,                                                              
+      37      "disabled:cursor-not-allowed disabled:opacity-60",
+      38      variants[variant],
+      39      sizes[size],
+
+⏺ Теперь форма: дрожание поля при ошибке и fade у карточки успеха.
+
+⏺ Bash(python3 - <<'EOF'
+      def edit(p, pairs):…)
+  ⎿  > kvarta@0.1.0 lint /Users/andrey/Documents/Programming/kvarta-landing
+     > eslint .
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated components/lead-form/FormStatus.tsx (+5 -1)
+      51    }, []);
+      52  
+      53    return (
+      54 -    <div role="status" aria-live="polite">                     
+      54 +    <div                                                       
+      55 +      role="status"                                            
+      56 +      aria-live="polite"                                       
+      57 +      className="motion-safe:animate-fade-in"                  
+      58 +    >                                                          
+      59        <h3
+      60          ref={titleRef}
+      61          tabIndex={-1}
+  ⎿  Updated components/lead-form/LeadForm.tsx (+21 -5)
+      19  } from "@/lib/lead/form";
+      20  import { formatByPhone, normalizeByPhone } from "@/lib/lead/pho
+          ne";
+      21  import { createIdempotencyKey, submitLead } from "@/lib/lead/su
+          bmit";
+      22 +import { prefersReducedMotion } from "@/lib/motion";           
+      23  import { nextComment, readPrefill } from "@/lib/prefill";
+      24  import { controlClasses, Field, fieldDescribedBy } from "./Fiel
+          d";
+      25  import { FormError, FormSuccess, type FormErrorReason } from ".
+          /FormStatus";
+     ...
+      29  
+      30  type Values = Record<FormField, string> & { interest: Interest 
+          };
+      31  
+      32 +// Дрожание поля с ошибкой при отправке (ТЗ, раздел 11): ±4 px 
+         +за 250 мс                                                      
+      33 +const SHAKE: Keyframe[] = [0, -4, 4, -4, 4, 0].map((x) => ({   
+      34 +  transform: `translateX(${x}px)`,                             
+      35 +}));                                                           
+      36 +                                                               
+      37  type Status =
+      38    | { kind: "idle" }
+      39    | { kind: "submitting" }
+     ...
+      137      }));
+      138    }
+      139  
+      134 -  function focusFirstInvalid(fieldErrors: FormErrors) {       
+      135 -    const first = FORM_FIELDS.find((field) => fieldErrors[fiel
+          -d]);                                                          
+      136 -    if (first) fieldRefs.current[first]?.focus();             
+      140 +  // Отправка не прошла из-за полей: фокус на первое, все ошиб
+          +очные вздрагивают.                                            
+      141 +  // На blur не дрожим – человек уже ушёл к следующему полю   
+      142 +  function showInvalid(fieldErrors: FormErrors) {             
+      143 +    const invalid = FORM_FIELDS.filter((field) => fieldErrors[
+          +field]);                                                      
+      144 +    if (invalid.length === 0) return;                         
+      145 +    fieldRefs.current[invalid[0]]?.focus();                   
+      146 +    if (prefersReducedMotion()) return;                       
+      147 +    for (const field of invalid) {                            
+      148 +      fieldRefs.current[field]?.animate(SHAKE, {              
+      149 +        duration: 250,                                        
+      150 +        easing: "ease-in-out",                                
+      151 +      });                                                     
+      152 +    }                                                         
+      153    }
+      154  
+      155    async function handleSubmit() {
+     … 16 more lines (ctrl+o to expand)
+
+⏺ Lint и typecheck зелёные. Проверяю поведение в браузере скриптом Playwright.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Всё работает корректно: скрытие и ступенчатое появление блоков, reduced
+  motion, фолбэк без JS, hover/нажатие. Но при быстрой прокрутке много блоков
+  может попасть в один кадр и задержка разрастётся — сейчас ограничу шаг
+  ступеньки.
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/Reveal.tsx'…)
+  ⎿  .shots/founders-390.png .shots/founders-1440.png
+     .shots/coffee-390.png .shots/coffee-1440.png
+  ⎿  Updated components/Reveal.tsx (+4 -2)
+       3  import { useEffect } from "react";
+       4  import { prefersReducedMotion } from "@/lib/motion";
+       5  
+       6 -// Ступенька между блоками, которые вошли в экран одновременно 
+       6 +// Ступенька между блоками, которые вошли в экран одновременно.
+         + При быстрой                                                   
+       7 +// прокрутке их может быть много – дольше 300 мс никто не ждёт 
+       8  const STEP_MS = 60;
+       9 +const MAX_STEPS = 5;                                           
+      10  
+      11  // Появление блоков [data-reveal] при прокрутке (ТЗ, раздел 11)
+          : один
+      12  // IntersectionObserver на страницу, сама анимация – в globals.
+          css.
+     ...
+      26          const entered = entries.filter((entry) => entry.isInter
+          secting);
+      27          entered.forEach(({ target }, index) => {
+      28            const node = target as HTMLElement;
+      27 -          node.style.animationDelay = `${index * STEP_MS}ms`;  
+      29 +          node.style.animationDelay = `${Math.min(index, MAX_ST
+         +EPS) * STEP_MS}ms`;                                            
+      30            node.dataset.reveal = "shown";
+      31            observer.unobserve(node);
+      32          });
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Вёрстка не поехала. Добавляю e2e-проверку анимаций и reduced motion.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Write(tests/e2e/motion.spec.ts)
+  ⎿  Wrote 58 lines to tests/e2e/motion.spec.ts
+       1 // Анимации и prefers-reduced-motion (ТЗ, разделы 9 и 11)
+       2 import { expect, leadForm, openLanding, test } from "./fixtures"
+       3 
+       4 const hidden = "[data-reveal=pending]";
+       5 
+          нет", async ({
+       7   page,
+       8 }) => {
+      10   await expect(page.locator("#hero [data-reveal]")).toHaveCount(
+         0);
+     … +54 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Новый спек зелёный на обоих проектах. Гоняю весь набор: unit/integration, все
+  e2e и прод-сборку.
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Как я и опасался, axe падает на состояниях формы. Смотрю, что именно.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Нашёл причину: axe проверяет блок с адресом/часами во время анимации появления
+  (opacity < 1), из-за чего неверно считает контраст, а полную страницу тест
+  пропустил зря, поскольку axe игнорирует скрытые элементы. Исправлю это,
+  запустив axe с reducedMotion: "reduce", чтобы весь контент оценивался в
+  финальном видимом состоянии.
+
+⏺ Update(tests/e2e/a11y.spec.ts)
+  ⎿  Added 4 lines
+       3  import type { Page } from "@playwright/test";
+       4  import { expect, leadForm, openLanding, test } from "./fixtures
+          ";
+       5  
+       6 +// Без анимаций: блок, который ещё не появился (opacity 0), axe
+         + пропускает                                                    
+       7 +// как скрытый, а на середине появления считает контраст полупр
+         +озрачного текста                                               
+       8 +test.use({ reducedMotion: "reduce" });                         
+       9 +                                                               
+      10  async function seriousViolations(page: Page) {
+      11    const { violations } = await new AxeBuilder({ page })
+      12      // Оверлей и индикатор next dev – не наша страница
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+⏺ Падает детерминированно, только на desktop с reduced motion. Подозреваю, что
+  клик теряется между mousedown и mouseup — проверяю это скриптом.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Подтвердил: это реальный баг — на mousedown поле телефона теряет фокус, кнопка
+  из-за ошибки съезжает на ~22+6 px, и mouseup приходится мимо, теряя клик
+  (раньше сдвиг был 2 px и проблема маскировалась). Иду чинить форму.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Добавляю в кнопку отправки защиту от потерянного клика, затем перепрогоню
+  тесты.
+
+⏺ Update(components/lead-form/LeadForm.tsx)
+  ⎿  Added 4 lines
+      325            type="submit"
+      326            size="lg"
+      327            disabled={submitting}
+      328 +          // Мышь не уводит фокус из поля: иначе blur покажет 
+          +ошибку над кнопкой,                                           
+      329 +          // кнопка съедет вниз, mouseup придётся мимо – и кли
+          +к потеряется.                                                 
+      330 +          // Ошибки и фокус после отправки расставит handleSub
+          +mit                                                           
+      331 +          onMouseDown={(event) => event.preventDefault()}     
+      332            className={status.kind === "error" ? "mt-4 w-full" :
+            "w-full"}
+      333          >
+      334            {submitting ? form.submitting : canRetry ? form.retr
+           y : form.submit}
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Update(tests/e2e/lead-form.spec.ts)
+  ⎿  Added 18 lines
+       85    await expect(lead.root.getByText(form.errors.phone)).toBeVis
+           ible();
+       86  });
+       87  
+       88 +test.describe("клик мышью по кнопке", () => {                 
+       89 +  // Без анимации нажатия кнопка сдвигается сразу – худший слу
+          +чай                                                           
+       90 +  test.use({ reducedMotion: "reduce" });                      
+       91 +                                                              
+       92 +  test("не теряется, когда ошибка с blur сдвигает кнопку", asy
+          +nc ({                                                         
+       93 +    page,                                                     
+       94 +  }) => {                                                     
+       95 +    await openLanding(page);                                  
+       96 +    const lead = leadForm(page);                              
+       97 +                                                              
+       98 +    await lead.phone.fill("123");                             
+       99 +    await lead.submit.click();                                
+      100 +                                                              
+      101 +    await expect(lead.name).toBeFocused();                    
+      102 +    await expect(lead.root.getByText(form.errors.name)).toBeVi
+          +sible();                                                      
+      103 +  });                                                         
+      104 +});                                                           
+      105 +                                                              
+      106  test("двойной клик – один запрос", async ({ page }) => {
+      107    await openLanding(page);
+      108    const lead = leadForm(page);
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Всё прошло успешно. Теперь проведу мутационную проверку: уберу фикс, чтобы
+  убедиться, что новый тест падает, и дополнительно проверю работу :active у
+  кнопки с preventDefault.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Мутация ловится (без фикса тест падает на desktop), :active работает в
+  Chromium и WebKit. Теперь прод-сборка.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Страница по-прежнему ○. Проверю e2e ещё и на прод-сборке – там действует CSP,
+  а Reveal и дрожание меняют стили из JS.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Тесты отправки заявки падают — скорее всего из-за того, что я запустил их
+  вручную на порту 3100 без CI-окружения (проверка Origin, соль IP). Проверю,
+  как это настроено в CI.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Нужна конкретная причина, а не догадки. Смотрю ответ API в одном из упавших
+  тестов.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ На порту 3100 остался старый сервер с прежней сборкой (другой
+  NEXT_PUBLIC_SITE_URL), из-за чего получалась 403. Освобождаю порт и запускаю
+  заново.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Все 53 e2e-теста прошли успешно на прод-сборке с CSP и заголовками.
+  Пересобираю .next с обычным окружением и фиксирую решения в NOTES.md.
+
+  Read 1 file, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Update(NOTES.md)
+  ⎿  Added 1 line
+      12  | 7      | Агент code-reviewer пометил как критичное: «Vercel д
+          описывает IP в конец x-forwarded-for, первый адрес подделываетс
+          я – лимит по IP обходится»                                     
+             | Сверили с документацией Vercel                            
+                                 | Утверждение неверно: Vercel перезаписы
+          вает заголовок, чтобы исключить подмену IP. Код не меняли, в `g
+          etClientIp` добавили ссылку на документацию                   |
+      13  | 8      | Агент design-qa: рамка полей и чипов должна быть 3 p
+          x («Рамка 3 px ink» в `tokens.md`), а в вёрстке 2 px           
+                                                                         
+             | Замерили пиксели макета: карточка и кнопка – 3 px, поля – 
+          2 px, на 390 и 1440    | Не меняли: строка в токенах про рамку 
+          карточек, вёрстка совпадает с макетом                          
+                                                                        |
+      14  | 8      | Форма без `method`: при нажатии до гидрации или без 
+          JS браузер делал GET на `/?name=…&phone=…` – номер в адресной с
+          троке, истории и логах. Ни ИИ, ни code-reviewer этого не замети
+          ли | Пользователь спросил, почему у формы нет `action`         
+                                 | `method="post"`: данные не попадают в 
+          URL; проверили Playwright с выключенным JS на dev и прод-сборке
+                                                                        |
+      15 +| 8 | Ошибка поля появлялась на blur, когда человек нажимал мыш
+         +ью «Отправить»: кнопка съезжала вниз на ~22 px, mouseup приходи
+         +лся мимо – клик терялся. Ни ИИ, ни code-reviewer этого не замет
+         +или | На шаге 12 упал axe-тест на desktop, когда его перевели н
+         +а reduced motion: без анимации нажатия кнопка сдвигалась сразу 
+         +| `preventDefault` на mousedown кнопки: фокус остаётся в поле, 
+         +ошибки и фокус расставляет отправка. Регрессионный e2e-тест без
+         + фикса падает |                                                
+      16  
+      17  ## Решения по ходу
+      18  
+
+⏺ Bash(cat >> NOTES.md <<'EOF'
+      - Шаг 12: анимируем не секции целиком, а блоки внутри (`data-reveal`): фон
+      тёмной и оранжевой полос не уезжает и не просвечивает. Прячет…)
+  ⎿   NOTES.md | 18 ++++++++++--------
+      1 file changed, 10 insertions(+), 8 deletions(-)
+     … +9 lines (ctrl+o to expand)
+  ⎿  Updated NOTES.md (+1 -0)
+      24  - Шаг 9: доступное имя кнопки на карточке – «Заказать : Колумби
+          я Уила» (sr-only-спан внутри `inline-flex` становится отдельным
+           элементом). Скринридеру не мешает, не правили. Проверку заголо
+          вков ответа главной (раздел 10) добавим в шаге 11 вместе с сами
+          ми заголовками.
+      25  - Шаг 10: `notifyTelegram` в `lib/lead/telegram.ts` без Next – 
+          env и `fetch` передаются параметрами; в `route.ts` его зовёт `a
+          fter()` только для новой заявки (дубли, боты, 429 не шлют). Тай
+          маут 5 с на попытку, один повтор только при сбое сети, 429 и 5x
+          x: 4xx («chat not found», бот удалён из группы) повтором не исп
+          равить. Ошибка в лог – без токена (он в адресе запроса). Click 
+          id без UTM в сообщении – «реклама (fbclid)», а не «прямой заход
+          ». В integration-тестах `after()` подменён очередью (`tests/int
+          egration/setup.ts`) – тест сам решает, когда выполнить задачи, 
+          и проверяет, что ответ не ждал Telegram. E2e и integration запу
+          скаются с пустыми `TELEGRAM_*`: проверили, что `@next/env` не п
+          ерезаписывает пустую переменную значением из `.env.local`. Смоу
+          к на `next start` с фальшивым токеном: 201, затем `telegram_sta
+          tus = failed` и `HTTP 401` в логе.
+      26  - Шаг 11: OG-картинка и иконки – статичные файлы в `app/` (`ope
+          ngraph-image.jpg`, `icon.svg`, `apple-icon.png`, `favicon.ico`)
+          , их собирает `scripts/brand-assets.mjs` через Playwright из `c
+          ontent.ts`. `next/og` не взяли: для кириллицы ему нужны файлы ш
+          рифтов в репозитории. Файловая картинка даёт хеш в адресе – Tel
+          egram перечитает превью после замены. Next сливает `metadata` п
+          оверхностно: свой `openGraph` на `/privacy` терял картинку, `og
+          :type` и `locale` – общая часть вынесена в `lib/metadata.ts`. З
+          аголовки безопасности только в production (`next dev` работает 
+          через eval); e2e проверяет их и отсутствие ошибок CSP на прод-с
+          борке. Chromium снимает непрозрачный скриншот как RGB-PNG, а IC
+          O-декодер Next принимает только RGBA – иконки рисуем через canv
+          as. В политике обещано удаление через 12 месяцев – автоматическ
+          ой чистки в коде нет, для учебного проекта не делаем.
+      27 +- Шаг 12: анимируем не секции целиком, а блоки внутри (`data-re
+         +veal`): фон тёмной и оранжевой полос не уезжает и не просвечива
+         +ет. Прячет только `Reveal` и только то, что ниже первого экрана
+         + – без JS, с reduced motion и при печати всё видно сразу. Появл
+         +ение – CSS-анимация `transform`, а hover карточки – свойство `t
+         +ranslate`: они не спорят друг с другом и с `transition`. Ступен
+         +ька 60 мс, не больше 5 шагов – при быстрой прокрутке ничего не 
+         +ждёт дольше 300 мс. Кнопка: при наведении под ней тень 6 px, пр
+         +и нажатии кнопка встаёт на её место (80 мс); на телефоне – толь
+         +ко сдвиг. Дрожание – Web Animations API и только при отправке: 
+         +его можно повторить на тех же ошибках, а на blur человек уже уш
+         +ёл к следующему полю. Плашка выезжает за 250 мс ещё с шага 5. a
+         +xe гоняем с reduced motion: блоки до появления он пропускал как
+         + скрытые, и тест «страница» на деле проверял только первый экра
+         +н.                                                             
+
+⏺ Код готов, тесты зелёные. Теперь сделаю отдельные коммиты: появление блоков,
+  кнопки и карточки, фикс клика, форма, тесты, заметки.
+
+⏺ Bash(S=.shots/final && mkdir -p $S && cp app/globals.css
+      components/sections/Catalog.tsx components/lead-form/LeadForm.tsx $S/ && \
+      python3 -c "…)
+  ⎿  diff --git a/app/globals.css b/app/globals.css
+     index 0285668..3aa58fe 100644
+     --- a/app/globals.css
+     … +32 lines (ctrl+o to expand)
+  ⎿  Updated app/globals.css (+1 -13)
+      30    --font-mono: var(--font-jetbrains-mono);
+      31  }
+      32  
+      33 -/* Смена формы на карточку успеха (ТЗ, раздел 11) */           
+      34 -@theme {                                                       
+      35 -  --animate-fade-in: fade-in 250ms ease-out;                   
+      36 -                                                               
+      37 -  @keyframes fade-in {                                         
+      38 -    from {                                                     
+      39 -      opacity: 0;                                              
+      40 -    }                                                          
+      41 -  }                                                            
+      42 -}                                                              
+      43 -                                                               
+      33  /* Жёсткие тени без размытия: мобильная 9/6/5 px, с md – 12/8/6
+           px */
+      34  @utility shadow-hard-lg {
+      35    box-shadow: 9px 9px 0 var(--color-ink);
+     ...
+      142  
+      143    /*
+      144     * Появление блоков при прокрутке: data-reveal расставляет c
+           omponents/Reveal.tsx.
+      156 -   * Только transform и opacity – без сдвигов вёрстки. Hover к
+          -арточек двигает                                               
+      157 -   * свойство translate, поэтому с анимацией transform они не 
+          -спорят                                                        
+      145 +   * Только transform и opacity – без сдвигов вёрстки.        
+      146     */
+      147    @media screen and (prefers-reduced-motion: no-preference) {
+      148      [data-reveal="pending"] {
+  ⎿  Updated components/sections/Catalog.tsx (+1 -2)
+      40                as="li"
+      41                data-reveal
+      42                tone={style.card}
+      43 -              // hover: в Tailwind v4 – только для устройств с 
+         -наведением, на телефоне карточка не прыгает                    
+      44 -              className="flex flex-col p-5 hover:-translate-y-1
+         - hover:shadow-hard-sm motion-safe:transition-[translate,box-sha
+         -dow] motion-safe:duration-150 lg:p-6"                          
+      43 +              className="flex flex-col p-5 lg:p-6"             
+      44              >
+      45                <div className="flex items-center justify-between
+           gap-3">
+      46                  <span className="hidden font-mono text-xs font-
+          medium md:block">
+
+⏺ Bash(sed -i '' 's|   \* Только transform и opacity – без сдвигов вёрстки\.$|
+      * Только transform и opacity – без сдвигов вёрстки|' app/globals.css &&
+      git add lib/mo…)  ⎿  42e7958 feat(motion): press buttons into their shadow, lift coffee car
+     ds on hover
+     88ec2b4 feat(motion): reveal blocks below the fold on scroll
+     651363e docs(notes): record SEO and OG decisions
+  ⎿  Updated app/globals.css (+1 -1)
+      142  
+      143    /*
+      144     * Появление блоков при прокрутке: data-reveal расставляет c
+           omponents/Reveal.tsx.
+      145 -   * Только transform и opacity – без сдвигов вёрстки.        
+      145 +   * Только transform и opacity – без сдвигов вёрстки         
+      146     */
+      147    @media screen and (prefers-reduced-motion: no-preference) {
+      148      [data-reveal="pending"] {
+  ⎿  Updated components/sections/Catalog.tsx (+2 -1)
+      40                as="li"
+      41                data-reveal
+      42                tone={style.card}
+      43 -              className="flex flex-col p-5 lg:p-6"             
+      43 +              // hover: в Tailwind v4 – только для устройств с 
+         +наведением, на телефоне карточка не прыгает                    
+      44 +              className="flex flex-col p-5 hover:-translate-y-1
+         + hover:shadow-hard-sm motion-safe:transition-[translate,box-sha
+         +dow] motion-safe:duration-150 lg:p-6"                          
+      45              >
+      46                <div className="flex items-center justify-between
+           gap-3">
+      47                  <span className="hidden font-mono text-xs font-
+          medium md:block">
+
+⏺ Bash(python3 -c "
+      import io…)
+  ⎿   app/globals.css                 | 3 ++-
+      components/sections/Catalog.tsx | 3 ++-
+      components/ui/Button.tsx        | 6 ++++--
+     … +17 lines (ctrl+o to expand)
+  ⎿  Updated app/globals.css (+2 -1)
+      142  
+      143    /*
+      144     * Появление блоков при прокрутке: data-reveal расставляет c
+           omponents/Reveal.tsx.
+      145 -   * Только transform и opacity – без сдвигов вёрстки         
+      145 +   * Только transform и opacity – без сдвигов вёрстки. Hover к
+          +арточек двигает                                               
+      146 +   * свойство translate, поэтому с анимацией transform они не 
+          +спорят                                                        
+      147     */
+      148    @media screen and (prefers-reduced-motion: no-preference) {
+      149      [data-reveal="pending"] {
+  ⎿  Updated components/lead-form/LeadForm.tsx (+5 -21)
+      19  } from "@/lib/lead/form";
+      20  import { formatByPhone, normalizeByPhone } from "@/lib/lead/pho
+          ne";
+      21  import { createIdempotencyKey, submitLead } from "@/lib/lead/su
+          bmit";
+      22 -import { prefersReducedMotion } from "@/lib/motion";           
+      22  import { nextComment, readPrefill } from "@/lib/prefill";
+      23  import { controlClasses, Field, fieldDescribedBy } from "./Fiel
+          d";
+      24  import { FormError, FormSuccess, type FormErrorReason } from ".
+          /FormStatus";
+     ...
+      28  
+      29  type Values = Record<FormField, string> & { interest: Interest 
+          };
+      30  
+      32 -// Дрожание поля с ошибкой при отправке (ТЗ, раздел 11): ±4 px 
+         -за 250 мс                                                      
+      33 -const SHAKE: Keyframe[] = [0, -4, 4, -4, 4, 0].map((x) => ({   
+      34 -  transform: `translateX(${x}px)`,                             
+      35 -}));                                                           
+      36 -                                                               
+      31  type Status =
+      32    | { kind: "idle" }
+      33    | { kind: "submitting" }
+     ...
+      131      }));
+      132    }
+      133  
+      140 -  // Отправка не прошла из-за полей: фокус на первое, все ошиб
+          -очные вздрагивают.                                            
+      141 -  // На blur не дрожим – человек уже ушёл к следующему полю   
+      142 -  function showInvalid(fieldErrors: FormErrors) {             
+      143 -    const invalid = FORM_FIELDS.filter((field) => fieldErrors[
+          -field]);                                                      
+      144 -    if (invalid.length === 0) return;                         
+      145 -    fieldRefs.current[invalid[0]]?.focus();                   
+      146 -    if (prefersReducedMotion()) return;                       
+      147 -    for (const field of invalid) {                            
+      148 -      fieldRefs.current[field]?.animate(SHAKE, {              
+      149 -        duration: 250,                                        
+      150 -        easing: "ease-in-out",                                
+      151 -      });                                                     
+      152 -    }                                                         
+      134 +  function focusFirstInvalid(fieldErrors: FormErrors) {       
+      135 +    const first = FORM_FIELDS.find((field) => fieldErrors[fiel
+          +d]);                                                          
+      136 +    if (first) fieldRefs.current[first]?.focus();             
+      137    }
+      138  
+      139    async function handleSubmit() {
+     … 16 more lines (ctrl+o to expand)
+  ⎿  PostToolUse:Bash says: Tip: Run /ultrareview before you push to catch bugs 
+     with a cloud-based multi-agent review.
+
+⏺ Bash(git add components/lead-form/LeadForm.tsx tests/e2e/lead-form.spec.ts &&
+      git commit -q -m "fix(form): keep focus in the field on mouse press so the
+      submit click…)
+  ⎿  077169c docs(notes): record motion decisions and the lost submit click
+     5db524b test(e2e): check reveal, field shake and reduced motion; run a
+     xe without animations
+     … +8 lines (ctrl+o to expand)
+  ⎿  Updated app/globals.css (+11 -0)
+      30    --font-mono: var(--font-jetbrains-mono);
+      31  }
+      32  
+      33 +/* Смена формы на карточку успеха (ТЗ, раздел 11) */           
+      34 +@theme {                                                       
+      35 +  --animate-fade-in: fade-in 250ms ease-out;                   
+      36 +                                                               
+      37 +  @keyframes fade-in {                                         
+      38 +    from {                                                     
+      39 +      opacity: 0;                                              
+      40 +    }                                                          
+      41 +  }                                                            
+      42 +}                                                              
+      43 +                                                               
+      44  /* Жёсткие тени без размытия: мобильная 9/6/5 px, с md – 12/8/6
+           px */
+      45  @utility shadow-hard-lg {
+      46    box-shadow: 9px 9px 0 var(--color-ink);
+  ⎿  Updated components/lead-form/LeadForm.tsx (+21 -5)
+      19  } from "@/lib/lead/form";
+      20  import { formatByPhone, normalizeByPhone } from "@/lib/lead/pho
+          ne";
+      21  import { createIdempotencyKey, submitLead } from "@/lib/lead/su
+          bmit";
+      22 +import { prefersReducedMotion } from "@/lib/motion";           
+      23  import { nextComment, readPrefill } from "@/lib/prefill";
+      24  import { controlClasses, Field, fieldDescribedBy } from "./Fiel
+          d";
+      25  import { FormError, FormSuccess, type FormErrorReason } from ".
+          /FormStatus";
+     ...
+      29  
+      30  type Values = Record<FormField, string> & { interest: Interest 
+          };
+      31  
+      32 +// Дрожание поля с ошибкой при отправке (ТЗ, раздел 11): ±4 px 
+         +за 250 мс                                                      
+      33 +const SHAKE: Keyframe[] = [0, -4, 4, -4, 4, 0].map((x) => ({   
+      34 +  transform: `translateX(${x}px)`,                             
+      35 +}));                                                           
+      36 +                                                               
+      37  type Status =
+      38    | { kind: "idle" }
+      39    | { kind: "submitting" }
+     ...
+      137      }));
+      138    }
+      139  
+      134 -  function focusFirstInvalid(fieldErrors: FormErrors) {       
+      135 -    const first = FORM_FIELDS.find((field) => fieldErrors[fiel
+          -d]);                                                          
+      136 -    if (first) fieldRefs.current[first]?.focus();             
+      140 +  // Отправка не прошла из-за полей: фокус на первое, все ошиб
+          +очные вздрагивают.                                            
+      141 +  // На blur не дрожим – человек уже ушёл к следующему полю   
+      142 +  function showInvalid(fieldErrors: FormErrors) {             
+      143 +    const invalid = FORM_FIELDS.filter((field) => fieldErrors[
+          +field]);                                                      
+      144 +    if (invalid.length === 0) return;                         
+      145 +    fieldRefs.current[invalid[0]]?.focus();                   
+      146 +    if (prefersReducedMotion()) return;                       
+      147 +    for (const field of invalid) {                            
+      148 +      fieldRefs.current[field]?.animate(SHAKE, {              
+      149 +        duration: 250,                                        
+      150 +        easing: "ease-in-out",                                
+      151 +      });                                                     
+      152 +    }                                                         
+      153    }
+      154  
+      155    async function handleSubmit() {
+     … 16 more lines (ctrl+o to expand)
+
+⏺ Шесть коммитов, рабочее дерево чистое. Пушу и открываю PR.
+
+  Created PR #16 (ctrl+o to expand)
+
+⏺ Шаг 12 (feat/motion) готов: PR #16 –
+  https://github.com/ahahaharu/kvarta-landing/pull/16. Lint, typecheck и все
+  тесты зелёные: 209 unit/integration, 51 e2e на dev и 53 на прод-сборке с CSP.
+  Мержить – тебе.
+
+  Что сделано по таблице анимаций из раздела 11 ТЗ:
+  - Появление блоков при прокрутке. Одно отслеживание прокрутки на страницу,
+    сама анимация на CSS: сдвиг на 20 px и прозрачность, 450 мс, ступенька 60
+    мс. Hero и шапка не анимируются.
+    - Анимирую блоки внутри секций, а не секции целиком: иначе фон тёмной и
+      оранжевой полос уезжал бы и просвечивал.
+    - Скрываются только блоки ниже первого экрана и только из JS. Без JS, с
+      «Уменьшить движение» и при печати всё видно сразу.
+  - Кнопки. При наведении под кнопкой появляется тень 6 px, при нажатии кнопка
+    встаёт на её место (80 мс).
+  - Карточки сортов. При наведении поднимаются на 4 px и получают тень. Это
+    только на устройствах с мышью, на телефоне карточки не прыгают.
+  - Форма. Поля с ошибкой вздрагивают на ±4 px при отправке, карточка успеха
+    появляется плавно. На уход из поля (blur) не дрожат: человек уже перешёл к
+    следующему полю.
+  - Нижняя плашка выезжала за 250 мс ещё с шага 5, её не трогал.
+  - «Уменьшить движение» отключает всё: появление, переходы, дрожание, плавный
+    скролл.
+
+  Две находки по ходу:
+  1. Терялся клик по «Отправить» мышью – этот баг был ещё с шага 8. Если в поле
+     ошибка, при нажатии поле теряет фокус и показывает её. Ошибка сдвигает
+     кнопку вниз на ~22 px, кнопка отпускается уже мимо, и клик не срабатывает.
+     Новый сдвиг кнопки при нажатии делал это вероятнее. Исправил: нажатие на
+     кнопку не уводит фокус из поля, ошибки показывает сама отправка. Добавил
+     тест, без исправления он падает.
+  2. Проверки доступности (axe) почти ничего не проверяли после появления
+     анимаций. Ещё не появившиеся блоки axe пропускает как скрытые, поэтому тест
+     «страница» смотрел только первый экран. Теперь axe запускается с
+     «Уменьшить движение» и видит всю страницу.
+
+  Обе находки и решения записал в NOTES.md. Новых зависимостей нет, страница
+  по-прежнему статическая (○).
+
+  В PR нет скриншота: вёрстка не менялась, а анимацию удобнее смотреть на превью
+  Vercel.
+
+✻ Cooked for 17m 22s · done Friday 5:52 PM
