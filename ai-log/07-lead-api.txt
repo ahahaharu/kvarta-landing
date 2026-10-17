@@ -1,0 +1,1099 @@
+ ▐▛███▛█   Claude Code v2.1.281
+▝▜██████▀  Opus 5.5 · Claude Pro
+  ▝▝ ▝▝    ~/Documents/Programming/kvarta-landing
+
+
+❯ /clear                                                                        
+
+❯ переходи к пункту 7                                                           
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Step 6 merged. Reading the sections for step 7.
+
+  Listed 1 directory, ran 4 shell commands (ctrl+o to expand)
+
+⏺ Подготовил план шага 7. По правилам проекта сначала план, код — после твоего
+  «ок».
+
+  Шаг 7 — feat/lead-api: план
+
+  Ветку создам от свежего main. Новых зависимостей не нужно: всё делается на
+  drizzle-orm, postgres и встроенном node:crypto.
+
+  Коммиты по порядку
+
+  1. feat(db): add leads table schema and initial migration
+     - db/schema.ts: таблица leads по разделу 7.
+       - CHECK на interest и telegram_status. По умолчанию telegram_status =
+         pending.
+       - У idempotency_key уникальный индекс.
+       - Индексы (phone, created_at desc) и (ip_hash, created_at).
+     - pnpm db:generate → db/migrations/0000_*.sql.
+     - db/client.ts: postgres.js + drizzle. Подключение ленивое и одно на
+       процесс, prepare: false, чтобы работало через пулер Neon.
+  2. feat(lead): add origin check, ip hash and bot filter. Это
+     lib/lead/guard.ts, React в нём не используется.
+     - isAllowedOrigin(origin) пропускает NEXT_PUBLIC_SITE_URL,
+       VERCEL_PROJECT_PRODUCTION_URL, VERCEL_URL и VERCEL_BRANCH_URL (превью
+       этого проекта), а в dev ещё localhost. Без Origin — 403: браузер всегда
+       шлёт его с POST.
+     - getClientIp(headers) и hashIp(ip, salt) (SHA-256).
+     - isBot(lead, now): заполнен honeypot или с startedAt прошло от 0 до 3 с.
+     - Unit-тесты на каждую функцию.
+  3. feat(lead): add createLead with advisory-lock dedupe and IP rate limit. Это
+     lib/lead/service.ts, всё в одной транзакции:
+     a. advisory lock по ip_hash, потом по телефону (порядок фиксированный,
+        взаимной блокировки не будет);
+     b. поиск дубля: тот же idempotency_key или тот же номер за 10 минут →
+        duplicate;
+     c. проверка лимита: 5 и больше заявок с этого ip_hash за час →
+        rate_limited;
+     d. INSERT … ON CONFLICT (idempotency_key) DO NOTHING. Если строка не
+        вставилась, читаю её по ключу и возвращаю duplicate. Так закрыт случай,
+        когда один ключ приходит с разными номерами.
+  4. feat(api): add POST /api/lead route handler в app/api/lead/route.ts:
+     - проверки по порядку: Origin → 403, Content-Type → 415, тело → 413. Тело
+       читаю потоком с обрывом после 10 КБ, content-length может не быть или он
+       может врать;
+     - битый JSON → 400 bad_request, ошибка схемы → 400 validation с полями;
+     - бот → тихий 201 с фиктивным id, без записи в БД;
+     - createLead → 201 / 200 duplicate / 429;
+     - любая другая ошибка → 500 server;
+     - заголовок Cache-Control: no-store, без CORS;
+     - в лог идут только исход, id и маскированный номер. Из ошибки Postgres
+       беру только code и message: в ней есть поле parameters с телефоном.
+  5. test(api): add integration tests against kvarta_test
+     - В Vitest два проекта: unit и integration. У integration свой global setup
+       (миграции через drizzle-orm/postgres-js/migrator), очистка leads перед
+       каждым тестом и последовательный запуск файлов.
+     - Тесты вызывают POST из route.ts напрямую. Сценарии из разделов 10 и 14:
+       - 201 и строка в БД;
+       - 400 с текстом ошибки и 400 на лишнее поле;
+       - повтор за 10 минут → 200 duplicate и одна строка;
+       - заявка 11-минутной давности → новая заявка;
+       - 10 параллельных запросов с одним номером → одна строка;
+       - тот же idempotencyKey → тот же id;
+       - honeypot и startedAt < 3 с → 201 без записи;
+       - атрибуция сохранилась;
+       - 6-я заявка с одного IP → 429;
+       - чужой Origin → 403, тело > 10 КБ → 413, не JSON → 415;
+       - падение БД → 500 без деталей.
+     - В CI уже есть Postgres-сервис и переменные, workflow менять не нужно.
+  6. docs(notes): решения ниже кратко попадут в NOTES.md.
+
+  Решения, которые прошу подтвердить
+
+  - Сначала дубль, потом лимит. Если человек повторно отправит ту же заявку, он
+    получит 200 duplicate, а не 429: дубль не создаёт новую строку. В ТЗ лимит
+    стоит раньше — отступаю сознательно.
+  - Отрицательное время от startedAt не считается ботом. Так бывает, когда часы
+    телефона спешат. Иначе живую заявку молча выбросим.
+  - Если IP_HASH_SALT не задан в production, сервер отвечает 500 и пишет 
+    понятную ошибку в лог. Хешировать IP без соли нельзя: IPv4 легко перебрать.
+    В dev и тестах подставляется фиксированная соль.
+  - Telegram — в шаге 10. Пока строки пишутся с telegram_status = pending,
+    after() добавлю там же, в шаге 10.
+
+  Neon и Vercel. Миграция применится сама через vercel-build на превью PR. Нужно
+  твоё действие: проверь, что IP_HASH_SALT задан для Preview и Production
+  (docs/SETUP.md, раздел 5). После деплоя превью отправлю тестовую заявку в его
+  Neon-ветку.
+
+  Начинаю?
+
+✻ Brewed for 2m 7s · done Thursday 11:13 PM
+
+❯ да, добавил переменную. с решениями согласен                                  
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Commit 1: schema and client.
+
+⏺ Write(db/schema.ts)
+  ⎿  Wrote 57 lines to db/schema.ts
+       1 // Таблица заявок (ТЗ, раздел 7). Номер – уже нормализованный `+
+         375XXXXXXXXX`,
+       2 // IP не храним – только ip_hash для лимита заявок.
+       3 import { sql } from "drizzle-orm";
+       4 import {
+       6   index,
+       7   pgTable,
+       8   text,
+       9   timestamp,
+      10   uuid,
+     … +51 lines (ctrl+o to expand)
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Write(db/client.ts)
+  ⎿  Wrote 31 lines to db/client.ts
+       1 // Подключение к Postgres: локально Docker, на Vercel – pooled-с
+       2 // Создаётся при первом запросе, а не при импорте: сборке страни
+         цы база не нужна.
+         stgres-js";
+       4 import postgres from "postgres";
+       6 
+       7 export type Db = PostgresJsDatabase<typeof schema>;
+       9 // В dev модуль перезагружается на каждую правку – держим одно п
+         одключение в globalThis
+         res.Sql };
+     … +28 lines (ctrl+o to expand)
+
+⏺ Bash(pnpm db:generate --name leads 2>&1 | tail -15 && ls db/migrations && cat
+      db/migrations/0000_*.sql)
+  ⎿  > kvarta@0.1.0 db:generate /Users/andrey/Documents/Programming/kvarta-
+     landing
+     > drizzle-kit generate --name leads
+     … +37 lines (ctrl+o to expand)
+  ⎿  Created db/migrations/0000_leads.sql (+29 -0)
+       1 +CREATE TABLE "leads" (                                         
+       2 +        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NUL
+         +L,                                                             
+       3 +        "created_at" timestamp with time zone DEFAULT now() NOT
+         + NULL,                                                         
+       4 +        "name" text NOT NULL,                                  
+       5 +        "phone" text NOT NULL,                                 
+       6 +        "interest" text NOT NULL,                              
+       7 +        "comment" text,                                        
+       8 +        "idempotency_key" uuid,                                
+       9 +        "utm_source" text,                                     
+      10 +        "utm_medium" text,                                     
+      11 +        "utm_campaign" text,                                   
+      12 +        "utm_content" text,                                    
+      13 +        "utm_term" text,                                       
+      14 +        "click_id" text,                                       
+      15 +        "click_id_type" text,                                  
+      16 +        "referrer" text,                                       
+      17 +        "landing_url" text,                                    
+      18 +        "page_url" text,                                       
+      19 +        "first_seen_at" timestamp with time zone,              
+      20 +        "user_agent" text,                                     
+      21 +        "telegram_status" text DEFAULT 'pending' NOT NULL,     
+      22 +        "ip_hash" text NOT NULL,                               
+      23 +        CONSTRAINT "leads_idempotency_key_unique" UNIQUE("idemp
+         +otency_key"),                                                  
+      24 +        CONSTRAINT "leads_interest_check" CHECK ("leads"."inter
+         +est" in ('subscription', 'order', 'question')),                
+      25 +        CONSTRAINT "leads_telegram_status_check" CHECK ("leads"
+         +."telegram_status" in ('pending', 'sent', 'failed', 'skipped'))
+      26 +);                                                             
+      27 +--> statement-breakpoint                                       
+      28 +CREATE INDEX "leads_phone_created_at_idx" ON "leads" USING btre
+         +e ("phone","created_at" DESC NULLS LAST);--> statement-breakpoi
+         +nt                                                             
+      29 +CREATE INDEX "leads_ip_hash_created_at_idx" ON "leads" USING bt
+         +ree ("ip_hash","created_at");                                  
+  ⎿  Created db/migrations/meta/0000_snapshot.json (+221 -0)
+        1 +{                                                             
+        2 +  "id": "02609cb2-57f6-45e1-99d5-e237c1552ce0",               
+        3 +  "prevId": "00000000-0000-0000-0000-000000000000",           
+        4 +  "version": "7",                                             
+        5 +  "dialect": "postgresql",                                    
+        6 +  "tables": {                                                 
+        7 +    "public.leads": {                                         
+        8 +      "name": "leads",                                        
+        9 +      "schema": "",                                           
+       10 +      "columns": {                                            
+       11 +        "id": {                                               
+       12 +          "name": "id",                                       
+       13 +          "type": "uuid",                                     
+       14 +          "primaryKey": true,                                 
+       15 +          "notNull": true,                                    
+       16 +          "default": "gen_random_uuid()"                      
+       17 +        },                                                    
+       18 +        "created_at": {                                       
+       19 +          "name": "created_at",                               
+       20 +          "type": "timestamp with time zone",                 
+       21 +          "primaryKey": false,                                
+       22 +          "notNull": true,                                    
+       23 +          "default": "now()"                                  
+       24 +        },                                                    
+       25 +        "name": {                                             
+       26 +          "name": "name",                                     
+       27 +          "type": "text",                                     
+       28 +          "primaryKey": false,                                
+       29 +          "notNull": true                                     
+       30 +        },                                                    
+       31 +        "phone": {                                            
+       32 +          "name": "phone",                                    
+       33 +          "type": "text",                                     
+       34 +          "primaryKey": false,                                
+       35 +          "notNull": true                                     
+       36 +        },                                                    
+       37 +        "interest": {                                         
+       38 +          "name": "interest",                                 
+       39 +          "type": "text",                                     
+       40 +          "primaryKey": false,                                
+     … 181 more lines (ctrl+o to expand)
+  ⎿  Updated db/migrations/meta/_journal.json (+10 -2)
+       1  {
+       2    "version": "7",
+       3    "dialect": "postgresql",
+       4 -  "entries": []                                                
+       5 -}                                                              
+       4 +  "entries": [                                                 
+       5 +    {                                                          
+       6 +      "idx": 0,                                                
+       7 +      "version": "7",                                          
+       8 +      "when": 1792095524913,                                   
+       9 +      "tag": "0000_leads",                                     
+      10 +      "breakpoints": true                                      
+      11 +    }                                                          
+      12 +  ]                                                            
+      13 +}                                                              
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ The migrate output had a Postgres error trace before "applied successfully" —
+  checking.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Those are only Postgres NOTICEs on the repeat run; the migration applied.
+  Next: guard functions.
+
+⏺ Write(lib/lead/guard.ts)
+  ⎿  Wrote 84 lines to lib/lead/guard.ts
+       1 // Защита POST /api/lead до записи в БД (ТЗ, раздел 10): Origin,
+          хеш IP, фильтр ботов.
+         легко тестировать.
+       3 import { createHash } from "node:crypto";
+       4 
+       6 
+       7 const DEV_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:
+         3000"];
+       9 /** Минимальное время заполнения формы: быстрее – бот */
+      10 export const MIN_FILL_MS = 3000;
+     … +87 lines (ctrl+o to expand)
+
+⏺ Write(lib/lead/request.ts)
+  ⎿  Wrote 52 lines to lib/lead/request.ts
+       1 // Разбор тела POST /api/lead (ТЗ, раздел 6): только JSON и не б
+         ольше 10 КБ.
+          байты по ходу чтения.
+       3 
+       4 export const BODY_MAX_BYTES = 10 * 1024;
+       6 export type ReadJsonResult =
+       7   | { ok: true; value: unknown }
+       8   | { ok: false; status: 400 | 413 | 415 };
+      10 export function isJsonContentType(value: string | null): boolean
+          {
+     … +46 lines (ctrl+o to expand)
+
+⏺ Unit tests for guard and request.
+
+⏺ Write(tests/unit/lead-guard.test.ts)
+  ⎿  Wrote 120 lines to tests/unit/lead-guard.test.ts
+      1 import { describe, expect, it } from "vitest";
+      2 import {
+      3   getClientIp,
+      4   getIpSalt,
+      5   hashIp,
+      6   isAllowedOrigin,
+      7   isBot,
+      8   trimUserAgent,
+      9 } from "@/lib/lead/guard";
+     … +123 lines (ctrl+o to expand)
+
+⏺ Write(tests/unit/lead-request.test.ts)
+  ⎿  Wrote 72 lines to tests/unit/lead-request.test.ts
+       1 import { describe, expect, it } from "vitest";
+       2 import { BODY_MAX_BYTES, readJsonBody } from "@/lib/lead/request
+         ";
+       4 const url = "http://localhost:3000/api/lead";
+       5 
+       6 function post(body: BodyInit, headers: Record<string, string> = 
+         {}) {
+       8     method: "POST",
+       9     headers: { "content-type": "application/json", ...headers },
+      10     body,
+     … +70 lines (ctrl+o to expand)
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Commit 3: the lead service.
+
+⏺ Write(lib/lead/service.ts)
+  ⎿  Wrote 113 lines to lib/lead/service.ts
+       1 // Запись заявки (ТЗ, разделы 6, 10): дедуп, лимит по IP и INSER
+         T в одной транзакции.
+         orm";
+       3 import type { Db } from "@/db/client";
+       4 import { leads } from "@/db/schema";
+       6 
+       7 export const DUPLICATE_WINDOW_MINUTES = 10;
+       8 export const RATE_LIMIT_PER_HOUR = 5;
+      10 // Пространства ключей advisory lock: хеш IP и хеш номера не пер
+         есекаются
+     … +117 lines (ctrl+o to expand)
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Write(app/api/lead/route.ts)  ⎿  Wrote 81 lines to app/api/lead/route.ts
+       1 // POST /api/lead (ТЗ, разделы 6, 10). Сервер не доверяет клиент
+         у: Origin,
+       2 // размер и тип тела, схема, боты, дубли и лимит по IP проверяют
+       3 import { randomUUID } from "node:crypto";
+       4 import { getDb } from "@/db/client";
+       5 import {
+       6   getClientIp,
+       8   hashIp,
+       9   isAllowedOrigin,
+      10   isBot,
+     … +84 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Build check: the page must stay static and the route must be dynamic.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Smoke test against the dev server.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Works end to end. Stopping the dev server, removing the test row, committing.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Commit 5: integration tests. Configuring Vitest projects first.
+
+⏺ Write(vitest.config.mts)
+  ⎿  Added 22 lines, removed 1 line
+       1  import { fileURLToPath } from "node:url";
+       2  import { defineConfig } from "vitest/config";
+       3 +import { TEST_DATABASE_URL } from "./tests/integration/db-url";
+       4  
+       5  export default defineConfig({
+       6    resolve: {
+       7      alias: { "@": fileURLToPath(new URL("./", import.meta.url))
+           },
+       8    },
+       9    test: {
+       9 -    include: ["tests/unit/**/*.test.ts", "tests/integration/**/
+         -*.test.ts"],                                                   
+      10      environment: "node",
+      11 +    projects: [                                                
+      12 +      {                                                        
+      13 +        extends: true,                                         
+      14 +        test: { name: "unit", include: ["tests/unit/**/*.test.t
+         +s"] },                                                         
+      15 +      },                                                       
+      16 +      {                                                        
+      17 +        extends: true,                                         
+      18 +        test: {                                                
+      19 +          name: "integration",                                 
+      20 +          include: ["tests/integration/**/*.test.ts"],         
+      21 +          globalSetup: ["tests/integration/global-setup.ts"],  
+      22 +          // Файлы делят одну базу kvarta_test и чистят её пере
+         +д каждым тестом                                                
+      23 +          fileParallelism: false,                              
+      24 +          env: {                                               
+      25 +            DATABASE_URL: TEST_DATABASE_URL,                   
+      26 +            NEXT_PUBLIC_SITE_URL: "http://localhost:3000",     
+      27 +            IP_HASH_SALT: "test-salt",                         
+      28 +          },                                                   
+      29 +        },                                                     
+      30 +      },                                                       
+      31 +    ],                                                         
+      32    },
+      33  });
+
+⏺ Write(tests/integration/db-url.ts)
+  ⎿  Wrote 13 lines to tests/integration/db-url.ts
+       1 // База для integration-тестов: локально – kvarta_test в Docker,
+          в CI – service container.
+       2 // .env.local не читаем: тесты не должны случайно попасть в рабо
+       3 export const TEST_DATABASE_URL =
+       4   process.env.DATABASE_URL_TEST ??
+       5   "postgres://kvarta:kvarta@localhost:5433/kvarta_test";
+       6 
+       8 export function assertTestDatabase(url: string): void {
+       9   const name = new URL(url).pathname.slice(1);
+      10   if (!name.endsWith("_test")) {
+     … +6 lines (ctrl+o to expand)
+
+⏺ Write(tests/integration/global-setup.ts)
+  ⎿  Wrote 15 lines to tests/integration/global-setup.ts
+       1 // Один раз перед integration-тестами: применить миграции к kvar
+         ta_test
+       3 import { migrate } from "drizzle-orm/postgres-js/migrator";
+       4 import postgres from "postgres";
+       5 import { TEST_DATABASE_URL, assertTestDatabase } from "./db-url"
+       6 
+       7 export default async function setup() {
+       8   assertTestDatabase(TEST_DATABASE_URL);
+          => {} });
+      10   try {
+     … +8 lines (ctrl+o to expand)
+
+⏺ Write(tests/integration/helpers.ts)
+  ⎿  Wrote 64 lines to tests/integration/helpers.ts
+       1 import { randomUUID } from "node:crypto";
+       2 import { sql } from "drizzle-orm";
+       3 import { afterAll, beforeEach } from "vitest";
+       4 import { closeDb, getDb } from "@/db/client";
+       5 import { leads } from "@/db/schema";
+       7 
+       8 export const SITE = "http://localhost:3000";
+       9 
+      10 /** Чистая таблица перед каждым тестом, закрытое подключение в к
+         онце файла */
+     … +56 lines (ctrl+o to expand)
+
+⏺ Write(tests/integration/lead-api.test.ts)
+  ⎿  Wrote 266 lines to tests/integration/lead-api.test.ts
+       1 // POST /api/lead против настоящего Postgres (ТЗ, разделы 6, 10,
+          14)
+       2 import { randomUUID } from "node:crypto";
+       3 import { eq, sql } from "drizzle-orm";
+       4 import { describe, expect, it } from "vitest";
+       6 import { getDb } from "@/db/client";
+       7 import { leads } from "@/db/schema";
+       8 import { order } from "@/lib/content";
+       9 import { BODY_MAX_BYTES } from "@/lib/lead/request";
+      10 import {
+     … +289 lines (ctrl+o to expand)
+
+⏺ Write(tests/integration/lead-api-errors.test.ts)
+  ⎿  Wrote 53 lines to tests/integration/lead-api-errors.test.ts
+       1 // Ошибки сервера: клиенту – только код, в лог – без номера и па
+         раметров запроса
+       2 import { afterEach, describe, expect, it, vi } from "vitest";
+       4 import { leadRequest, validLead } from "./helpers";
+       5 
+       6 // Ошибка postgres.js несёт текст запроса и параметры – в них но
+         мер телефона
+       8   code: "ECONNREFUSED",
+       9   query: "insert into leads ...",
+      10   parameters: ["Анна", "+375291234567"],
+     … +49 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ All 124 green on the first run. Two follow-ups: quieting the logs from passing
+  tests, and a mutation check that the concurrency tests actually catch a
+  missing lock.
+
+⏺ Bash(sed -i '' 's|          fileParallelism: false,|          fileParallelism:
+      false,\n          // Логи API показываем только у упавших тестов\n
+        silent: "p…)
+  ⎿  0
+           Tests  23 passed (23)
+      Test Files  7 passed (7)
+     … +3 lines (ctrl+o to expand)
+  ⎿  Updated vitest.config.mts (+2 -0)
+      21            globalSetup: ["tests/integration/global-setup.ts"],
+      22            // Файлы делят одну базу kvarta_test и чистят её пере
+          д каждым тестом
+      23            fileParallelism: false,
+      24 +          // Логи API показываем только у упавших тестов       
+      25 +          silent: "passed-only",                               
+      26            env: {
+      27              DATABASE_URL: TEST_DATABASE_URL,
+      28              NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
+
+⏺ Found that removing both advisory locks still let integration tests pass —
+  likely because the pool opens connections lazily, so one connection just
+  serializes all 10 transactions instead of racing. I'll warm up the pool before
+  running the parallel tests to make the concurrency test actually meaningful.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Update(tests/integration/helpers.ts)
+  ⎿  Added 13 lines
+      16    afterAll(closeDb);
+      17  }
+      18  
+      19 +/**                                                            
+      20 + * Открыть все подключения пула заранее. Иначе параллельные зап
+         +росы встают                                                    
+      21 + * в очередь к единственному открытому подключению, пока осталь
+         +ные проходят                                                   
+      22 + * рукопожатие, – гонки нет, и тест на блокировки проходит даже
+         + без них.                                                      
+      23 + */                                                            
+      24 +export async function warmPool(size = 5) {                     
+      25 +  await Promise.all(                                           
+      26 +    Array.from({ length: size }, () =>                         
+      27 +      getDb().execute(sql`select pg_sleep(0.05)`),             
+      28 +    ),                                                         
+      29 +  );                                                           
+      30 +}                                                              
+      31 +                                                               
+      32  export function validLead(patch: Record<string, unknown> = {}) 
+          {
+      33    return {
+      34      name: "Анна",
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(f=tests/integration/lead-api.test.ts && perl -0pi -e 's/import \{
+      countLeads, leadRequest, useCleanDb, validLead \} from
+      "\.\/helpers";/import {\n  countLeads,\…)
+  ⎿  3
+     0
+           Tests  1 failed | 22 passed (23)
+     … +15 lines (ctrl+o to expand)
+  ⎿  Updated tests/integration/lead-api.test.ts (+10 -1)
+       7  import { leads } from "@/db/schema";
+       8  import { order } from "@/lib/content";
+       9  import { BODY_MAX_BYTES } from "@/lib/lead/request";
+      10 -import { countLeads, leadRequest, useCleanDb, validLead } from 
+         -"./helpers";                                                   
+      10 +import {                                                       
+      11 +  countLeads,                                                  
+      12 +  leadRequest,                                                 
+      13 +  useCleanDb,                                                  
+      14 +  validLead,                                                   
+      15 +  warmPool,                                                    
+      16 +} from "./helpers";                                            
+      17  
+      18  useCleanDb();
+      19  
+     ...
+      215    });
+      216  
+      217    it("10 параллельных запросов с одним номером → одна строка",
+            async () => {
+      218 +    await warmPool();                                         
+      219      const results = await Promise.all(
+      220        Array.from({ length: 10 }, () => send(validLead())),
+      221      );
+     ...
+      231  
+      232    it("один idempotencyKey с разными номерами параллельно → одн
+           а строка", async () => {
+      233      const key = randomUUID();
+      234 +    await warmPool();                                         
+      235      const phones = ["+375291111111", "+375292222222", "+375293
+           333333"];
+      236      const results = await Promise.all(
+      237        phones.map((phone) => send(validLead({ phone, idempotenc
+           yKey: key }))),
+     ...
+      285    });
+      286  
+      287    it("параллельный флуд с разными номерами не обходит лимит", 
+           async () => {
+      288 +    await warmPool();                                         
+      289      const results = await Promise.all(
+      290        Array.from({ length: 10 }, (_, i) =>
+      291          send(validLead({ phone: phone(i + 1) })),
+
+⏺ The IP-flood test still passes without the lock since the connection pool size
+  matches the limit, so I'll restructure it to add 3 leads before launching 5
+  parallel requests—this should let exactly 2 through with the lock, versus all
+  5 without it.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Rewriting the IP-limit concurrency test so it can actually fail without the
+  lock, then I'll re-run the check.
+
+⏺ Update(tests/integration/lead-api.test.ts)
+  ⎿  Added 6 lines, removed 4 lines
+      285    });
+      286  
+      287    it("параллельный флуд с разными номерами не обходит лимит", 
+           async () => {
+      288 +    // 3 уже есть, 5 параллельно: без блокировки по IP все 5 у
+          +видят «3 < 5»                                                 
+      289 +    for (let i = 1; i <= 3; i++) await send(validLead({ phone:
+          + phone(i) }));                                                
+      290      await warmPool();
+      291      const results = await Promise.all(
+      290 -      Array.from({ length: 10 }, (_, i) =>                    
+      291 -        send(validLead({ phone: phone(i + 1) })),             
+      292 +      Array.from({ length: 5 }, (_, i) =>                     
+      293 +        send(validLead({ phone: phone(i + 4) })),             
+      294        ),
+      295      );
+      296  
+      295 -    expect(results.filter((r) => r.status === 201)).toHaveLeng
+          -th(5);                                                        
+      296 -    expect(results.filter((r) => r.status === 429)).toHaveLeng
+          -th(5);                                                        
+      297 +    expect(results.filter((r) => r.status === 201)).toHaveLeng
+          +th(2);                                                        
+      298 +    expect(results.filter((r) => r.status === 429)).toHaveLeng
+          +th(3);                                                        
+      299      expect(await countLeads()).toBe(5);
+      300    });
+      301  });
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Removing the phone lock still passed because the IP lock also serializes
+  per-address requests, so I need a test that isolates the phone lock
+  itself—same number hitting from different IPs, like a phone switching between
+  Wi-Fi and mobile data. I'll set up the 10 parallel requests to originate from
+  different IPs.
+
+  Searched for 1 pattern (ctrl+o to expand)
+⏺ Update(tests/integration/lead-api.test.ts)
+  ⎿  Added 5 lines, removed 1 line
+      216  
+      217    it("10 параллельных запросов с одним номером → одна строка",
+            async () => {
+      218      await warmPool();
+      219 +    // Разные IP (телефон переключился с Wi-Fi на мобильную се
+          +ть): блокировка                                               
+      220 +    // по IP их не сериализует, держит только блокировка по но
+          +меру                                                          
+      221      const results = await Promise.all(
+      220 -      Array.from({ length: 10 }, () => send(validLead())),    
+      222 +      Array.from({ length: 10 }, (_, i) =>                    
+      223 +        send(validLead(), { ip: `198.51.100.${i + 1}` }),     
+      224 +      ),                                                      
+      225      );
+      226  
+      227      const created = results.filter((r) => r.status === 201);
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Each lock now has a test that fails without it, and five clean runs are green.
+  Something in typecheck or lint failed, though:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Two fixes: silent is a root-level option, not a per-project one, so it moves
+  up. And the React Hooks rule trips on the use… prefix, so I'll rename the
+  helper to withCleanDb.
+
+⏺ Bash(perl -0pi -e 's/\n          \/\/ Логи API показываем только у упавших
+      тестов\n          silent: "passed-only",//; s/    environment: "node",\n/
+        environment:…)
+  ⎿    },
+       test: {
+         environment: "node",
+     … +10 lines (ctrl+o to expand)
+  ⎿  Updated tests/integration/helpers.ts (+1 -1)
+       8  export const SITE = "http://localhost:3000";
+       9  
+      10  /** Чистая таблица перед каждым тестом, закрытое подключение в 
+          конце файла */
+      11 -export function useCleanDb() {                                 
+      11 +export function withCleanDb() {                                
+      12    beforeEach(async () => {
+      13      assertTestDatabase(process.env.DATABASE_URL!);
+      14      await getDb().execute(sql`truncate table ${leads}`);
+  ⎿  Updated tests/integration/lead-api.test.ts (+2 -2)
+      10  import {
+      11    countLeads,
+      12    leadRequest,
+      13 -  useCleanDb,                                                  
+      13 +  withCleanDb,                                                 
+      14    validLead,
+      15    warmPool,
+      16  } from "./helpers";
+      17  
+      18 -useCleanDb();                                                  
+      18 +withCleanDb();                                                 
+      19  
+      20  async function send(
+      21    body: unknown,
+  ⎿  Updated vitest.config.mts (+2 -2)
+       8    },
+       9    test: {
+      10      environment: "node",
+      11 +    // Логи API показываем только у упавших тестов             
+      12 +    silent: "passed-only",                                     
+      13      projects: [
+      14        {
+      15          extends: true,
+     ...
+      23            globalSetup: ["tests/integration/global-setup.ts"],
+      24            // Файлы делят одну базу kvarta_test и чистят её пере
+          д каждым тестом
+      25            fileParallelism: false,
+      24 -          // Логи API показываем только у упавших тестов       
+      25 -          silent: "passed-only",                               
+      26            env: {
+      27              DATABASE_URL: TEST_DATABASE_URL,
+      28              NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
+
+⏺ All green. Committing the tests, then NOTES.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='NOTES.md'…)
+  ⎿   NOTES.md | 10 ++++++----
+      1 file changed, 6 insertions(+), 4 deletions(-)
+     39dc1c4 docs(notes): record lead API decisions and the lock-test mista
+     … +9 lines (ctrl+o to expand)
+  ⎿  Updated NOTES.md (+6 -4)
+       4  
+       5  ## Где ИИ ошибся
+       6  
+       7 -| Шаг    | Что сделал ИИ                                       
+         -                                          | Как заметил        
+         -                                               | Как исправили 
+         -                                                               
+         -                                           |                   
+       8 -| ------ | ----------------------------------------------------
+         ------------------------------------------ | -------------------
+         ----------------------------------------------- | --------------
+         ----------------------------------------------------------------
+         ------------------------------------------- |                   
+       9 -| Дизайн | Варианты B и C не отражали продукт (кофе)           
+         -                                          | Сам, при просмотре 
+         -                                               | Отказался, взя
+         -л A и доработал с реальными фото                               
+         -                                           |                   
+      10 -| 2      | Не видя логов, предположил, что превью Vercel падает
+         - из-за `DATABASE_URL` только в Production | Принёс логи сборки:
+         - конфиг читается, падает `applying migrations` | Воспроизвели л
+         -окально: нет `db/migrations/meta/_journal.json`, drizzle-kit гл
+         -отает текст ошибки. Добавили пустой журнал |                   
+       7 +| Шаг    | Что сделал ИИ                                       
+         +                                                               
+         +                                                               
+         +| Как заметил                                                  
+         +                    | Как исправили                            
+         +                                                               
+         +                                                           |   
+       8 +| ------ | ----------------------------------------------------
+         +---------------------------------------------------------------
+         +-------------------------------------------------------------- 
+         +| -------------------------------------------------------------
+         +------------------- | -----------------------------------------
+         +---------------------------------------------------------------
+         +---------------------------------------------------------- |   
+       9 +| Дизайн | Варианты B и C не отражали продукт (кофе)           
+         +                                                               
+         +                                                               
+         +| Сам, при просмотре                                           
+         +                    | Отказался, взял A и доработал с реальными
+         + фото                                                          
+         +                                                           |   
+      10 +| 2      | Не видя логов, предположил, что превью Vercel падает
+         + из-за `DATABASE_URL` только в Production                      
+         +                                                               
+         +| Принёс логи сборки: конфиг читается, падает `applying migrati
+         +ons`                | Воспроизвели локально: нет `db/migrations
+         +/meta/_journal.json`, drizzle-kit глотает текст ошибки. Добавил
+         +и пустой журнал                                            |   
+      11 +| 7      | Тесты «10 параллельных запросов → 1 строка» и лимита
+         + по IP проходили и без advisory lock: пул открывает подключения
+         + лениво, запросы шли по одному, а лимит (5) равен размеру пула 
+         +| Мутационная проверка: убрали блокировки из `service.ts`, тест
+         +ы остались зелёными | `warmPool()` перед параллельными тестами,
+         + запросы с одним номером – с разных IP, флуд – 3 заявки + 5 пар
+         +аллельно. Теперь без каждой из блокировок падает свой тест |   
+      12  
+      13  ## Решения по ходу
+      14  
+      15  - Шаг 6: zod только на сервере (`lib/lead/schema.ts`), форма пр
+          оверяет поля через `lib/lead/rules.ts` без zod. Замер esbuild: 
+          полный zod ~25 КБ gzip, даже `zod/mini` со схемой ~10 КБ – почт
+          и весь бюджет клиентского JS (15 КБ); `rules.ts` – 0,3 КБ. Атри
+          буция не валит заявку: кривые поля → `null`, длинные обрезаются
+           до 500 символов.
+      16 +- Шаг 7: в одной транзакции блокировки по IP, потом по номеру (
+         +порядок фиксирован – без взаимных блокировок). Сначала дубль, п
+         +отом лимит: повтор той же заявки получает 200, а не 429. Один `
+         +idempotencyKey` с разными номерами ловит `ON CONFLICT DO NOTHIN
+         +G`. `startedAt` в будущем (часы телефона спешат) ботом не счита
+         +ем. Без `IP_HASH_SALT` в production – 500: IPv4 без соли восста
+         +навливается перебором. Запрос без `Origin` – 403. В лог из ошиб
+         +ки postgres.js берём только `code` и `message`: в `parameters` 
+         +лежит номер.                                                   
+      17  
+      18  ## Расход токенов (/cost в конце сессии)
+      19  
+
+⏺ Commits are done. Now the PR in the format of the template and PR #6.
+
+  Created PR #9, ran 1 shell command (ctrl+o to expand)
+
+⏺ PR #9 is open. Waiting for CI and the Vercel preview.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Шаг 7 готов: PR #9 — https://github.com/ahahaharu/kvarta-landing/pull/9. CI
+  зелёный, в нём прошли и unit-, и integration-тесты против Postgres. Превью
+  Vercel собралось.
+
+  Тестовую заявку на превью я не отправил: превью закрыто Vercel Authentication,
+  curl до него не достучится. Применилась ли миграция в Neon, я тоже не видел —
+  проверял только локально.
+
+  Что тебе проверить: открой превью, войди и выполни в DevTools команду fetch из
+  пункта «Как проверить» в PR. Должна прийти строка в Neon-ветке
+  preview/feat/lead-api, а повтор той же команды — вернуть duplicate: true. Если
+  строка появилась, значит миграция на превью тоже прошла.
+
+  Что сделано (6 коммитов):
+  - Таблица leads в Postgres и первая миграция.
+  - Проверки до записи в БД: свой ли адрес сайта (Origin), размер и тип тела,
+    соль для хеша IP, отсев ботов.
+  - Запись заявки в одной транзакции: сначала поиск дубля, потом лимит по IP,
+    потом вставка.
+  - Сам эндпоинт POST /api/lead. Я проверил его на pnpm dev: 201 → повтор даёт
+    200 duplicate → чужой Origin даёт 403 → GET даёт 405. В логе номер только с
+    маской.
+  - 23 integration-теста против kvarta_test по сценариям из разделов 10 и 14.
+  - Главная по-прежнему собирается статической (○).
+
+  Моя ошибка, которую я нашёл сам. Я убрал из кода блокировки, которые защищают
+  от двойной записи, и тесты на параллельные запросы остались зелёными, то есть
+  ничего не проверяли. Подключения к базе открывались по одному, поэтому запросы
+  на деле шли последовательно. Тесты переделал: теперь без каждой из двух
+  блокировок падает свой тест. Записал в NOTES.md.
+
+  Что ещё стоит знать:
+  - Для pnpm build && pnpm start локально (понадобится для e2e в шаге 9) заполни
+    IP_HASH_SALT в .env.local. В режиме production без соли эндпоинт отвечает
+    500 — так мы договорились.
+  - telegram_status пока всегда pending. Отправка в Telegram (after()) будет в
+    шаге 10.
+
+  По правилам проекта перед слиянием шага 7 нужен агент code-reviewer —
+  запустить? И не забудь записать /cost в NOTES.md.
+
+✻ Baked for 9m 21s · done Thursday 11:27 PM
+
+❯ да, запусти                                                                   
+
+⏺ code-reviewer(Review lead API branch)
+  ⎿  Backgrounded agent (↓ to manage · ctrl+o to expand)
+
+⏺ code-reviewer запущен на PR #9 и работает в фоне. Напишу, когда закончит.
+
+  Я передал ему наши согласованные отступления от ТЗ, чтобы он не считал их
+  ошибками. Отдельно попросил посмотреть:
+  - блокировки в транзакции через пулер Neon;
+  - повторную отправку с тем же idempotencyKey;
+  - проверку Origin на превью Vercel;
+  - можно ли доверять IP из x-forwarded-for;
+  - не попадает ли номер в логи;
+  - каких тестов не хватает по разделам 10 и 14.
+
+✻ Baked for 14s · done Thursday 11:28 PM
+
+› Message from ad55fa514ef7cc1fe
+  Ревью ветки feat/lead-api (PR #9, шаг 7) относительно main.
+
+  Изученные файлы: app/api/lead/route.ts, lib/lead/guard.ts,
+  lib/lead/request.ts, lib/lead/service.ts, db/client.ts, db/schema.ts,
+  db/migrations/0000_leads.sql, vitest.config.mts,
+  tests/unit/lead-guard.test.ts, tests/unit/lead-request.test.ts,
+  tests/integration/*. Сверено с docs/SPEC.md разделами 6, 7, 10, 14 и
+  CLAUDE.md.
+
+  1. [критично] lib/lead/guard.ts:47-49 (`getClientIp`) – берёт первый адрес из
+  `x-forwarded-for`, комментарий утверждает «на Vercel x-forwarded-for ставит
+  сама платформа», но это не так: Vercel дописывает настоящий IP клиента в КОНЕЦ
+  существующей цепочки `x-forwarded-for`, а не заменяет её и не ставит свой
+  адрес первым. Первый элемент — это то, что в заголовке прислал сам отправитель
+  запроса, т.е. полностью подделываемое значение. Это обнуляет оба механизма
+  защиты от флуда из раздела 10 (лимит 5 заявок/час по `ip_hash` и advisory-lock
+  по IP в `service.ts`): атакующий может на каждый запрос подставлять новый
+  случайный первый IP и слать заявки без ограничения. Исправление: использовать
+  `x-real-ip` (который Vercel не позволяет подменить клиенту) как основной и
+  единственный доверенный источник в проде, `x-forwarded-for` – только как
+  dev/локальный fallback, без слепого доверия первому элементу.
+
+  2. [важно] tests/unit/lead-guard.test.ts:56-61 – тест на `getClientIp`
+  закрепляет именно это ошибочное поведение («берёт первый адрес из
+  x-forwarded-for»), а не проверяет устойчивость к спуфингу. Нет кейса, где
+  клиент сам присылает `x-forwarded-for` с произвольным значением одновременно с
+  платформенным `x-real-ip` – тест должен проверять, что в такой ситуации
+  выигрывает доверенный источник, а не первый элемент XFF.
+
+  3. [мелочь] db/client.ts:14-21 – пул `max: 5` на каждый инстанс
+  serverless-функции; при параллельных холодных стартах на Vercel+Neon pooled
+  это может давать больше одновременных соединений к пулеру, чем ожидается из
+  расчёта лимита 5 заявок/час по IP (не баг, но стоит держать в голове при
+  нагрузочной проверке перед сдачей).
+
+  4. [мелочь] db/migrations/0000_leads.sql – файл без завершающего newline; не
+  влияет на работу, но лучше поправить для чистоты diff/линтера.
+
+  Остальное по области шага 7 выглядит корректно и хорошо покрыто тестами:
+  - Порядок advisory-lock (IP → phone) зафиксирован и не даёт дедлоков; дедуп по
+  `idempotency_key`/`phone+10 мин` и лимит по IP в правильном порядке (сначала
+  дубль, потом лимит) – соответствует согласованным отступлениям и покрыт
+  мутационными тестами (tests/integration/lead-api.test.ts, warmPool-паттерн
+  явно описан в NOTES.md).
+  - `ON CONFLICT DO NOTHING` по `idempotency_key` + fallback-select корректно
+  обрабатывает гонку с разными номерами и одним ключом (тест «один
+  idempotencyKey с разными номерами параллельно → одна строка»).
+  - Проверка `Origin` (VERCEL_URL/VERCEL_BRANCH_URL/VERCEL_PROJECT_PRODUCTION_UR
+  L/NEXT_PUBLIC_SITE_URL, dev-origins только при NODE_ENV!=production) и её
+  тесты – без замечаний.
+  - Чтение тела (Content-Type, Content-Length, потоковый лимит 10 КБ, подсчёт
+  байт, а не символов) – корректно и тестируется отдельно от integration-уровня.
+  - Логирование: в catch-блоке `route.ts` из ошибки postgres.js берутся только
+  `code`/`message` (намеренно не `parameters`/`detail`), номер телефона всегда
+  маскируется через `maskPhone` – подтверждено тестом на то, что полный номер и
+  текст SQL-запроса не попадают в лог.
+  - SQL – везде через параметризованный `sql` Drizzle, без конкатенации строк.
+  - `IP_HASH_SALT` отсутствует в production → 500 с причиной в логе –
+  соответствует согласованному отступлению и протестировано.
+
+  Файлы, затронутые находками:
+  /Users/andrey/Documents/Programming/kvarta-landing/lib/lead/guard.ts, /Users/a
+  ndrey/Documents/Programming/kvarta-landing/tests/unit/lead-guard.test.ts,
+  /Users/andrey/Documents/Programming/kvarta-landing/db/client.ts, /Users/andrey
+  /Documents/Programming/kvarta-landing/db/migrations/0000_leads.sql.
+
+⏺ The reviewer's main finding contradicts what I remember of the Vercel docs:
+  Vercel overwrites x-forwarded-for instead of appending to it. I'll check the
+  documentation before changing anything.
+
+⏺ Agent "Review lead API branch" finished · 4m 57s
+
+⏺ Fetch(https://vercel.com/docs/headers/request-headers)
+  ⎿  Received 34.6KB (200 OK)
+
+⏺ The reviewer's finding was mistaken — Vercel's docs confirm it overwrites
+  x-forwarded-for so the code is actually correct. I'll add the doc link in a
+  comment to prevent future false alarms and log this in NOTES.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Update(lib/lead/guard.ts)
+  ⎿  Added 6 lines, removed 1 line
+      43    return origin !== null && allowedOrigins(env).has(origin);
+      44  }
+      45  
+      46 -/** На Vercel x-forwarded-for ставит сама платформа, первый адр
+         -ес – клиент */                                                 
+      46 +/**                                                            
+      47 + * Vercel перезаписывает x-forwarded-for, а не дописывает в кон
+         +ец: присланное                                                 
+      48 + * клиентом значение до функции не доходит, подделать IP нельзя
+         +.                                                              
+      49 + * https://vercel.com/docs/headers/request-headers#x-forwarded-
+         +for                                                            
+      50 + * Запятые и x-real-ip – для локального запуска за другими прок
+         +си.                                                            
+      51 + */                                                            
+      52  export function getClientIp(headers: Headers): string {
+      53    const forwarded = headers.get("x-forwarded-for")?.split(",")[
+          0]?.trim();
+      54    return forwarded || headers.get("x-real-ip")?.trim() || "unkn
+          own";
+
+⏺ Bash(python3 - <<'EOF'
+      p='NOTES.md'…)
+  ⎿        Tests  124 passed (124)
+     6b2e121 docs(notes): record the false x-forwarded-for review finding
+     b199fc2 docs(lead): cite Vercel docs on x-forwarded-for in getClientIp
+  ⎿  Updated NOTES.md (+1 -0)
+       9  | Дизайн | Варианты B и C не отражали продукт (кофе)           
+                                                                         
+                                                                         
+          | Сам, при просмотре                                           
+                              | Отказался, взял A и доработал с реальными
+           фото                                                          
+                                                                     |
+      10  | 2      | Не видя логов, предположил, что превью Vercel падает
+           из-за `DATABASE_URL` только в Production                      
+                                                                         
+          | Принёс логи сборки: конфиг читается, падает `applying migrati
+          ons`                | Воспроизвели локально: нет `db/migrations
+          /meta/_journal.json`, drizzle-kit глотает текст ошибки. Добавил
+          и пустой журнал                                            |
+      11  | 7      | Тесты «10 параллельных запросов → 1 строка» и лимита
+           по IP проходили и без advisory lock: пул открывает подключения
+           лениво, запросы шли по одному, а лимит (5) равен размеру пула 
+          | Мутационная проверка: убрали блокировки из `service.ts`, тест
+          ы остались зелёными | `warmPool()` перед параллельными тестами,
+           запросы с одним номером – с разных IP, флуд – 3 заявки + 5 пар
+          аллельно. Теперь без каждой из блокировок падает свой тест |
+      12 +| 7      | Агент code-reviewer пометил как критичное: «Vercel д
+         +описывает IP в конец x-forwarded-for, первый адрес подделываетс
+         +я – лимит по IP обходится»                                     
+         +| Сверили с документацией Vercel                               
+         +                    | Утверждение неверно: Vercel перезаписывае
+         +т заголовок, чтобы исключить подмену IP. Код не меняли, в `getC
+         +lientIp` добавили ссылку на документацию                   |   
+      13  
+      14  ## Решения по ходу
+      15  
+
+⏺ Adding the review result to the PR description:
+
+  Edited PR #9 (ctrl+o to expand)
+
+⏺ Ревью закончено. Из четырёх замечаний code-reviewer правка понадобилась только
+  в комментарии, логику кода не трогал. Главное «критичное» замечание оказалось
+  ошибочным.
+
+  [критично] «Лимит по IP обходится подменой x-forwarded-for» — неверно. Агент
+  утверждал, что Vercel дописывает настоящий IP в конец заголовка, а код берёт
+  первый адрес, который присылает сам клиент. В документации Vercel сказано
+  обратное: платформа перезаписывает этот заголовок именно для защиты от подмены
+  IP, а x-real-ip содержит то же значение. Значит, текущий код на Vercel
+  корректен. Чтобы на следующем ревью это замечание не всплыло снова, я добавил
+  ссылку на документацию в комментарий к getClientIp.
+
+  [важно] Нет теста на подмену заголовка. Это следствие первого замечания,
+  поэтому тоже снимается: такая подмена до нашей функции на Vercel не доходит.
+
+  Две мелочи оставил как есть:
+  - Пул из 5 подключений на один экземпляр функции нормально работает через
+    пулер Neon.
+  - Нет перевода строки в конце файла миграции — его сгенерировал drizzle-kit.
+    Править такой файл после того, как миграция уже применена на превью,
+    незачем.
+
+  Остальное агент проверил и подтвердил без замечаний: порядок блокировок,
+  обработку повторов с тем же idempotencyKey, проверку Origin, чтение тела
+  запроса с лимитом и то, что в логах номер только под маской.
+
+  Что я сделал после ревью:
+  - Записал ложную находку в NOTES.md как пример того, где ошибся ИИ.
+  - Дописал итог ревью в описание PR #9.
+  - Запушил два коммита, только комментарий и заметки. CI и превью снова
+    зелёные.
+
+  PR готов к слиянию через «Rebase and merge». Перед этим проверь заявку на
+  превью командой fetch из описания PR: строка должна появиться в Neon-ветке.
+✻ Cooked for 7m 15s · done Thursday 11:35 PM
+
+❯ fetch("/api/lead", { method: "POST", headers: { "content-type":               
+  "application/json" }, body: JSON.stringify({ name: "Тест", phone: "+375 29    
+  000-00-01", idempotencyKey: crypto.randomUUID(), startedAt: Date.now() -      
+  10000 }) }).then(r => r.json())                                               
+  Promise {<pending>}[[Prototype]]: Promise[[PromiseState]]:                    
+  "pending"[[PromiseResult]]: undefined                                         
+  fetch("/api/lead", { method: "POST", headers: { "content-type":               
+  "application/json" }, body: JSON.stringify({ name: "Тест", phone: "+375 29    
+  000-00-01", idempotencyKey: crypto.randomUUID(), startedAt: Date.now() -      
+  10000 }) }).then(r => r.json())                                               
+  Promise {<pending>}[[Prototype]]: Promise[[PromiseState]]:                    
+  "pending"[[PromiseResult]]: undefined                                         
+
+⏺ Ничего не сломалось. Chrome показывает промис в момент вызова, когда ответ ещё
+  не пришёл, и потом это значение не обновляет. Обе заявки, скорее всего, ушли.
+  Чтобы увидеть ответ, добавь await в начало:
+
+  await fetch("/api/lead", { method: "POST", headers: { "content-type":
+  "application/json" }, body: JSON.stringify({ name: "Тест", phone: "+375 29 
+  000-00-01", idempotencyKey: crypto.randomUUID(), startedAt: Date.now() - 10000
+  }) }).then(r => r.json())
+
+  Два вызова уже были, поэтому этот третий с тем же номером должен вернуть { ok:
+  true, id: "…", duplicate: true }. Этот id совпадёт с id первой заявки.
+
+  Ответы двух прошлых вызовов можно посмотреть во вкладке Network: фильтр lead,
+  затем запрос, затем Response. Первый должен быть 201 с duplicate: false,
+  второй — 200 с duplicate: true.
+
+  Потом проверь Neon Console: ветка preview/feat/lead-api, Tables, leads. Там
+  должна быть ровно одна строка с номером +375290000001. Если она на месте,
+  значит миграция на превью применилась и дубли отсекаются.
+
+  Если придёт что-то другое, например 403, 500 или 404, пришли ответ и строку из
+  Vercel → Deployment → Logs. В логе каждой заявки есть поле "event":"lead",
+  номер там под маской.
+
+✻ Baked for 10s · done Thursday 11:38 PM
+
+❯ clear                                                                         

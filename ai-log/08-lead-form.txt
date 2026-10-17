@@ -1,0 +1,2147 @@
+ ▐▛███▛█   Claude Code v2.1.281
+▝▜██████▀  Opus 5.5 · Claude Pro
+  ▝▝ ▝▝    ~/Documents/Programming/kvarta-landing
+
+
+❯ приступим к пункту 8 + убери из claude.md и отовсюду откуда надо всё про      
+  /cost и расход токенов, это не нужно                                          
+
+⏺ Login expired · Please run /login
+
+✻ Cooked for 0s · done Friday 1:30 PM
+
+❯ /login 
+  ⎿  Login successful
+
+  Read 2 files, ran 4 shell commands (ctrl+o to expand)
+  ⎿  15 skills available
+
+⏺ Изучаю ТЗ и код к шагу 8 (форма), дальше – скриншоты формы, токены и CTA,
+  потом план.
+
+  Read 2 files, ran 5 shell commands (ctrl+o to expand)
+
+⏺ Убираю упоминания /cost и расхода токенов отдельной маленькой веткой, затем
+  пришлю план шага 8.
+
+⏺ Bash(python3 - <<'EOF'
+      import re,io…)
+  ⎿   CLAUDE.md     | 2 +-
+      NOTES.md      | 7 +------
+      docs/SETUP.md | 2 +-
+     … +14 lines (ctrl+o to expand)
+  ⎿  Updated CLAUDE.md (+1 -1)
+      28  - Крупные шаги (7, 8) – сначала план, потом код.
+      29  - Не коммить в `main`, не делай force push, не мержи PR сам – э
+          то делает пользователь.
+      30  - Шаг готов, когда: `pnpm lint`, `pnpm typecheck`, тесты зелёны
+          е; вёрстка проверена на 390 px.
+      31 -- Ошибки ИИ, которые заметил пользователь, и расход токенов (`/
+         -cost`) – коротко в `NOTES.md`.                                 
+      31 +- Ошибки ИИ, которые заметил пользователь, и решения по ходу – 
+         +коротко в `NOTES.md`.                                          
+      32  
+      33  ## Правила кода
+      34  
+  ⎿  Updated NOTES.md (+1 -6)
+      1  # Рабочие заметки
+      2  
+      3 -Сырьё для README: где ИИ ошибся и как это заметили, решения по х
+        -оду, расход токенов. Пишем коротко, по ходу работы.             
+      3 +Сырьё для README: где ИИ ошибся и как это заметили, решения по х
+        +оду. Пишем коротко, по ходу работы.                             
+      4  
+      5  ## Где ИИ ошибся
+      6  
+     ...
+      15  
+      16  - Шаг 6: zod только на сервере (`lib/lead/schema.ts`), форма пр
+          оверяет поля через `lib/lead/rules.ts` без zod. Замер esbuild: 
+          полный zod ~25 КБ gzip, даже `zod/mini` со схемой ~10 КБ – почт
+          и весь бюджет клиентского JS (15 КБ); `rules.ts` – 0,3 КБ. Атри
+          буция не валит заявку: кривые поля → `null`, длинные обрезаются
+           до 500 символов.
+      17  - Шаг 7: в одной транзакции блокировки по IP, потом по номеру (
+          порядок фиксирован – без взаимных блокировок). Сначала дубль, п
+          отом лимит: повтор той же заявки получает 200, а не 429. Один `
+          idempotencyKey` с разными номерами ловит `ON CONFLICT DO NOTHIN
+          G`. `startedAt` в будущем (часы телефона спешат) ботом не счита
+          ем. Без `IP_HASH_SALT` в production – 500: IPv4 без соли восста
+          навливается перебором. Запрос без `Origin` – 403. В лог из ошиб
+          ки postgres.js берём только `code` и `message`: в `parameters` 
+          лежит номер.
+      18 -                                                               
+      19 -## Расход токенов (/cost в конце сессии)                       
+      20 -                                                               
+      21 -| Шаг | Ветка | Стоимость / токены | Комментарий |             
+      22 -| --- | ----- | ------------------ | ----------- |             
+  ⎿  Updated docs/SETUP.md (+1 -1)
+      101  1. `git switch main && git pull` → `claude` → «шаг N».
+      102  2. Claude делает ветку, коммиты, PR. Вы смотрите превью и слив
+           аете через «Rebase and merge».
+      103  3. Перед слиянием шагов 7 и 8: «запусти code-reviewer». После 
+           вёрстки: «запусти design-qa для hero и freshness».
+      104 -4. В конце: `/cost` → цифру в `NOTES.md`; `/export` → `ai-log/
+          -NN-ветка.md` (проверить, что внутри нет токенов); `/clear`.   
+      104 +4. В конце: `/export` → `ai-log/NN-ветка.md` (проверить, что в
+          +нутри нет токенов); `/clear`.                                 
+  ⎿  Updated docs/SPEC.md (+1 -2)
+      87  │  ├─ agents/  settings.json
+      88  ├─ docs/                    # SPEC.md (это ТЗ), lighthouse/
+      89  ├─ ai-log/                  # экспорты сессий Claude Code
+      90 -├─ NOTES.md                 # где ИИ ошибся, расход токенов    
+      90 +├─ NOTES.md                 # где ИИ ошибся, решения по ходу   
+      91  ├─ CLAUDE.md
+      92  ├─ docker-compose.yml
+      93  ├─ .env.example
+     ...
+      458  2. Тихий вывод: Vitest `--reporter=dot`, Playwright `--reporte
+           r=line`, от Lighthouse – только сводка.
+      459  3. Точечное чтение: сначала поиск (grep/glob), потом нужный фа
+           йл; скриншоты – только нужной секции.
+      460  4. Крупные шаги (7, 8) начинать в plan mode: поправить план де
+           шевле, чем переписывать код.
+      461 -5. В конце сессии `/cost` – цифра в `NOTES.md` (пригодится для
+          - README).                                                     
+      461  
+      462  **Лог сессий для сдачи**
+      463  
+
+  Created PR #11 (ctrl+o to expand)
+
+⏺ Готово: убрал /cost и учёт расхода токенов из CLAUDE.md, NOTES.md,
+  docs/SPEC.md (раздел 13 и дерево файлов) и docs/SETUP.md. Это отдельный PR
+  #11: https://github.com/ahahaharu/kvarta-landing/pull/11. Раздел «Экономия
+  токенов» в ТЗ я оставил: он о том, как держать контекст коротким, а не об
+  учёте расхода.
+
+  План шага 8 – feat/lead-form
+
+  Логика без React (lib/, с unit-тестами)
+  1. lib/attribution.ts – разбор меток из URL: 5 UTM, а click id берётся по
+     первому найденному в порядке yclid → fbclid → gclid.
+     - Если в URL есть хотя бы одна метка, сохраняю в localStorage метки,
+       referrer, адрес входа и время на 30 дней.
+     - При отправке беру сохранённое и добавляю page_url. Если сохранить не
+       удалось (приватный режим или браузер Instagram), беру метки из текущего
+       URL.
+     - Каждое значение обрезаю до 500 символов, чтобы тело запроса не упёрлось в
+       лимит 10 КБ.
+     - CLICK_ID_TYPES и ATTRIBUTION_MAX переезжают из schema.ts в этот модуль,
+       schema.ts их импортирует. Так zod не попадёт в клиентский бандл.
+  2. lib/lead/submit.ts – submitLead(payload, fetch) с таймаутом 10 с.
+     Возвращает один из исходов: success | duplicate | validation(fields) | 
+     rate_limited | network | server. Там же генерация UUID с запасным вариантом
+     без crypto.randomUUID (его нет на http в локальной сети).
+  3. lib/lead/callback.ts – когда ждать звонка по часам работы из content.ts,
+     время берётся по Минску.
+
+  Компоненты (components/lead-form/)
+  4. LeadForm (client): поля, ошибки на blur и при отправке, aria-invalid и
+  aria-describedby, фокус на первое неверное поле.
+  - Телефон мягко форматируется на blur. Placeholder комментария меняется при
+    выборе «Вопрос».
+  - Имя и телефон сохраняются в sessionStorage. Honeypot и startedAt уходят с
+    заявкой.
+  - Повторные клики во время отправки игнорируются.
+  5. InterestChips: radio-группа в виде чипов ≥ 48 px. На мобильной они в
+     столбик, на десктопе в ряд, как в макете.
+  6. FormStatus: карточка успеха или дубля с фокусом на заголовок и aria-live,
+     плюс плашки ошибок сети, сервера и 429.
+     - При ошибке сети или сервера кнопка становится «Повторить» и шлёт тот же
+       ключ.
+     - При ошибке сервера и 429 показывается ссылка на Instagram.
+  7. Order.tsx: каркас карточки меняется на <LeadForm />. Текст под кнопкой
+     будет в двух вариантах { full, short }, как в макете.
+
+  Предзаполнение из CTA
+  8. CTA остаются серверными ссылками <a href="#order" data-interest="…" 
+  data-comment="…">. LeadForm вешает на document один делегированный обработчик
+  кликов: клиентских CTA-компонентов нет, а без JS ссылки просто прокручивают к
+  форме.
+  - Комментарий из карточки сорта перезаписывает поле, только если оно пустое
+    или в нём текст предыдущего CTA. Свой текст человека не стирается.
+  - Это затрагивает Hero, Catalog, Subscription и MobileBar. Кнопки шапки форму
+    не предзаполняют.
+
+  Проверка: lint, typecheck, test, build (страница должна остаться ○), снимок
+  node scripts/shot.mjs order на 390 и 1440 px, ручная проверка в браузере. E2E
+  будет на шаге 9.
+
+  Расхождения в источниках (решаю так, если не скажете иначе):
+  - Кнопка называется «Отправить заявку», как в макете и content.ts. В разделе 5
+    ТЗ стоит «Оставить заявку».
+  - В ТЗ не задан текст для заявки в рабочее время. Предлагаю «Перезвоним
+    сегодня до 20:00» (до 18:00 в выходные). Вне часов будет «Перезвоним
+    сегодня/завтра после 8:00 (10:00)» по ближайшему открытию.
+  - Ссылка /privacy пока ведёт на 404: страница появится на шаге 11.
+
+  Начинать по этому плану?
+
+✻ Sautéed for 10m 53s · done Friday 1:41 PM
+
+❯ да, начинай                                                                   
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Write(lib/attribution.ts)
+  ⎿  Wrote 174 lines to lib/attribution.ts
+       1 // Атрибуция рекламы (ТЗ, раздел 8): модель «последний рекламный
+       2 // При загрузке метки из URL сохраняются на 30 дней, при отправк
+         е заявки
+       3 // уходят на сервер вместе с текущим page_url. Без React и без z
+       4 // модуль попадает в клиентский бандл, schema.ts берёт отсюда ко
+         нстанты.
+       6 export const UTM_KEYS = [
+       7   "utm_source",
+       8   "utm_medium",
+      10   "utm_content",
+     … +176 lines (ctrl+o to expand)
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='lib/lead/schema.ts'…)
+  ⎿  // Схема заявки для POST /api/lead (ТЗ, разделы 5, 6, 8, 10). Сервер н
+     е доверяет
+     // клиенту и повторяет всю валидацию; правила полей – из rules.ts, тек
+     … +22 lines (ctrl+o to expand)
+  ⎿  Updated lib/lead/schema.ts (+1 -3)
+      2  // клиенту и повторяет всю валидацию; правила полей – из rules.t
+         s, тексты – из content.ts.
+      3  // Только для сервера: в форму импортируем rules.ts, а не этот ф
+         айл (zod – ~25 КБ gzip).
+      4  import { z } from "zod";
+      5 +import { ATTRIBUTION_MAX, CLICK_ID_TYPES } from "@/lib/attributi
+        +on";                                                            
+      6  import { interestLabels, order, type Interest } from "@/lib/cont
+         ent";
+      7  import { COMMENT_MAX, NAME_MAX, NAME_MIN, normalizeByPhone } fro
+         m "./rules";
+      8  
+     ...
+      13    ...Interest[],
+      14  ];
+      15  
+      15 -export const CLICK_ID_TYPES = ["yclid", "fbclid", "gclid"] as c
+         -onst;                                                          
+      16 -                                                               
+      17 -export const ATTRIBUTION_MAX = 500;                            
+      16  // С запасом на скобки, пробелы и дефисы вокруг 12 цифр
+      17  const PHONE_RAW_MAX = 32;
+      18  const HONEYPOT_MAX = 500;
+
+⏺ Пишу логику формы: атрибуция готова, дальше тексты в content.ts, правила
+  полей, отправка и часы звонка.
+
+⏺ Bash(python3 - <<'EOF'
+      p='lib/content.ts'…)
+  ⎿  components/sections/Order.tsx:27:        <p className="text-sm text-br
+     own">{order.form.note}</p>
+     lib/lead/schema.ts:9:const errors = order.form.errors;
+     … +3 lines (ctrl+o to expand)
+  ⎿  Updated lib/content.ts (+11 -1)
+      272      submit: "Отправить заявку",
+      273      submitting: "Отправляем…",
+      274      retry: "Повторить",
+      275 -    note: "Менеджер перезвонит в рабочее время и всё оформит. 
+          -Оплата онлайн не нужна.",                                     
+      275 +    note: {                                                   
+      276 +      full: "Менеджер перезвонит в рабочее время и всё оформит
+          +. Оплата онлайн не нужна.",                                   
+      277 +      short: "Менеджер перезвонит в рабочее время. Оплата онла
+          +йн не нужна.",                                                
+      278 +    },                                                        
+      279 +    // Скрытое поле-ловушка для ботов: человек его не видит   
+      280 +    honeypot: "Сайт",                                         
+      281      consent: {
+      282        before: "Нажимая кнопку, вы соглашаетесь на",
+      283        link: "обработку персональных данных",
+     ...
+      298          "У нас что-то сломалось. Попробуйте ещё раз через мину
+           ту или напишите нам в Instagram",
+      299        rateLimited:
+      300          "Слишком много заявок. Попробуйте позже или напишите н
+           ам в Instagram",
+      301 +      instagram: { label: "Написать в Instagram", href: busine
+          +ss.instagramUrl },                                            
+      302 +      // Когда ждать звонка – по часам работы (Europe/Minsk)  
+      303 +      callbackUntil: (time: string) => `Перезвоним сегодня до 
+          +${time}`,                                                     
+      304 +      callbackAfter: (dayOffset: number, time: string) =>     
+      305 +        `Перезвоним ${dayOffset === 0 ? "сегодня" : dayOffset 
+          +=== 1 ? "завтра" : "в ближайший рабочий день"} после ${time}`,
+      306      },
+      307    },
+      308  } as const;
+
+⏺ Write(lib/lead/form.ts)
+  ⎿  Wrote 89 lines to lib/lead/form.ts
+      1 // Проверка полей формы и черновик в sessionStorage (ТЗ, раздел 5
+        ).
+      2 // Без React и zod: модуль попадает в клиентский бандл.
+      4 import { isValidComment, isValidName, normalizeByPhone } from "./
+        rules";
+      5 
+      6 const errors = order.form.errors;
+      8 // Порядок – порядок полей в форме: фокус уходит на первое неверн
+        ое
+      9 export const FORM_FIELDS = ["name", "phone", "comment"] as const;
+     … +87 lines (ctrl+o to expand)
+
+⏺ Write(lib/lead/submit.ts)
+  ⎿  Wrote 97 lines to lib/lead/submit.ts
+       1 // Отправка заявки из формы (ТЗ, разделы 5–6): один запрос с тай
+         маутом 10 с,
+       2 // ответ сервера → исход, по которому форма выбирает состояние.
+       3 import type { ClientAttribution } from "@/lib/attribution";
+       4 import type { Interest } from "@/lib/content";
+       6 
+       7 export const LEAD_ENDPOINT = "/api/lead";
+       8 export const SUBMIT_TIMEOUT_MS = 10_000;
+       9 
+      10 export type LeadPayload = {
+     … +99 lines (ctrl+o to expand)
+
+⏺ Write(lib/lead/callback.ts)
+  ⎿  Wrote 78 lines to lib/lead/callback.ts
+       1 // Когда ждать звонка (ТЗ, раздел 5): по часам работы из content
+         .ts
+       2 // и времени Минска, а не часам телефона.
+       3 import { business, order } from "@/lib/content";
+       4 
+       6   "Sunday",
+       7   "Monday",
+       8   "Tuesday",
+       9   "Wednesday",
+      10   "Thursday",
+     … +72 lines (ctrl+o to expand)
+
+⏺ Write(lib/prefill.ts)
+  ⎿  Wrote 40 lines to lib/prefill.ts
+       1 // Предзаполнение формы из CTA (ТЗ, раздел 4). CTA остаются серв
+         ерными
+         егированием:
+       3 // без JS ссылка просто прокручивает к форме.
+       4 import { interestLabels, type Interest } from "@/lib/content";
+       6 export type Prefill = { interest: Interest; comment?: string };
+       7 
+       8 export function isInterest(value: unknown): value is Interest {
+         ls, value);
+      10 }
+     … +36 lines (ctrl+o to expand)
+
+⏺ Write(components/lead-form/Field.tsx)
+  ⎿  Wrote 52 lines to components/lead-form/Field.tsx
+       1 import type { ReactNode } from "react";
+       3 
+       4 // Поле ввода: 18 px, высота 56 px, рамка ink; ошибка – рамка or
+       5 // (на белом 3,7:1 – достаточно для границы) и текст ink с оранж
+         евой чертой
+       7   "block w-full border-2 border-ink bg-white px-4 text-lg text-i
+         nk placeholder:text-ink/55",
+         d:outline-orange aria-invalid:-outline-offset-4",
+       9   "focus-visible:outline-3 focus-visible:outline-offset-3 focus-
+      10 );
+     … +50 lines (ctrl+o to expand)
+
+⏺ Write(components/lead-form/InterestChips.tsx)
+  ⎿  Wrote 41 lines to components/lead-form/InterestChips.tsx
+      1 import { interestLabels, order, type Interest } from "@/lib/conte
+        nt";
+      2 import { isInterest } from "@/lib/prefill";
+      3 
+      4 const interests = Object.keys(interestLabels) as Interest[];
+      5 
+      6 type InterestChipsProps = {
+      7   value: Interest;
+      8   onChange: (value: Interest) => void;
+      9 };
+     … +40 lines (ctrl+o to expand)
+⏺ Update(components/lead-form/Field.tsx)
+  ⎿  Added 4 lines, removed 7 lines
+       1  import type { ReactNode } from "react";
+       2  import { cn } from "@/lib/cn";
+       3  
+       4 -// Поле ввода: 18 px, высота 56 px, рамка ink; ошибка – рамка o
+         -range                                                          
+       5 -// (на белом 3,7:1 – достаточно для границы) и текст ink с оран
+         -жевой чертой                                                   
+       6 -export const controlClasses = cn(                              
+       7 -  "block w-full border-2 border-ink bg-white px-4 text-lg text-
+         -ink placeholder:text-ink/55",                                  
+       8 -  "aria-invalid:border-orange aria-invalid:outline-2 aria-inval
+         -id:outline-orange aria-invalid:-outline-offset-4",             
+       9 -  "focus-visible:outline-3 focus-visible:outline-offset-3 focus
+         --visible:outline-ink",                                         
+      10 -);                                                             
+       4 +// Поле ввода: 18 px, рамка ink; ошибка – рамка orange (на бело
+         +м 3,7:1 –                                                      
+       5 +// достаточно для границы) и текст ink с оранжевой чертой. Фоку
+         +с – глобальный                                                 
+       6 +export const controlClasses =                                  
+       7 +  "block w-full border-2 border-ink bg-white px-4 text-lg text-
+         +ink placeholder:text-ink/55 aria-invalid:border-3 aria-invalid:
+         +border-orange";                                                
+       8  
+       9  type FieldProps = {
+      10    id: string;
+
+⏺ Bash(sed -i '' 's/^import { cn } from "@\/lib\/cn";\n//'
+      components/lead-form/Field.tsx && python3 - <<'EOF'
+      p='components/lead-form/Field.tsx'…)
+  ⎿  import type { ReactNode } from "react";
+
+     // Поле ввода: 18 px, рамка ink; ошибка – рамка orange (на белом 3,7:1
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated components/lead-form/Field.tsx (+0 -1)
+      1  import type { ReactNode } from "react";
+      2 -import { cn } from "@/lib/cn";                                  
+      2  
+      3  // Поле ввода: 18 px, рамка ink; ошибка – рамка orange (на белом
+          3,7:1 –
+      4  // достаточно для границы) и текст ink с оранжевой чертой. Фокус
+          – глобальный
+
+⏺ Bash(sed -i '' 's/ aria-invalid:border-3 aria-invalid:border-orange/
+      aria-invalid:border-orange/' components/lead-form/Field.tsx && grep -n
+      aria-invalid components/l…)
+  ⎿  6:  "block w-full border-2 border-ink bg-white px-4 text-lg text-ink p
+     laceholder:text-ink/55 aria-invalid:border-orange";
+  ⎿  Updated components/lead-form/Field.tsx (+1 -1)
+      3  // Поле ввода: 18 px, рамка ink; ошибка – рамка orange (на белом
+          3,7:1 –
+      4  // достаточно для границы) и текст ink с оранжевой чертой. Фокус
+          – глобальный
+      5  export const controlClasses =
+      6 -  "block w-full border-2 border-ink bg-white px-4 text-lg text-i
+        -nk placeholder:text-ink/55 aria-invalid:border-3 aria-invalid:bo
+        -rder-orange";                                                   
+      6 +  "block w-full border-2 border-ink bg-white px-4 text-lg text-i
+        +nk placeholder:text-ink/55 aria-invalid:border-orange";         
+      7  
+      8  type FieldProps = {
+      9    id: string;
+
+⏺ Логика и поля готовы, пишу FormStatus и сам LeadForm.
+
+⏺ Write(components/lead-form/FormStatus.tsx)
+  ⎿  Wrote 72 lines to components/lead-form/FormStatus.tsx
+       1 import { useEffect, useRef } from "react";
+       2 import { order } from "@/lib/content";
+       3 
+       4 const { status } = order.form;
+       5 
+         ed";
+       7 
+       8 const errorTexts: Record<FormErrorReason, string> = {
+       9   network: status.network,
+      10   server: status.server,
+     … +68 lines (ctrl+o to expand)
+
+⏺ Write(components/lead-form/LeadForm.tsx)
+  ⎿  Wrote 311 lines to components/lead-form/LeadForm.tsx
+       1 "use client";
+       2 
+       3 import { useEffect, useRef, useState, type FormEvent } from "rea
+       4 import { Button } from "@/components/ui/Button";
+       5 import { ShortFull } from "@/components/ui/ShortFull";
+       6 import { captureAttribution, readAttribution } from "@/lib/attri
+         bution";
+       8 import { callbackText } from "@/lib/lead/callback";
+       9 import {
+      10   clearDraft,
+     … +325 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/lead-form/LeadForm.tsx'…)
+  ⎿  303:        <Button
+     304-          type="submit"
+     305-          size="lg"
+     … +10 lines (ctrl+o to expand)
+  ⎿  Updated components/lead-form/LeadForm.tsx (+8 -5)
+       1  "use client";
+       2  
+       3 -import { useEffect, useRef, useState, type FormEvent } from "re
+         -act";                                                          
+       3 +import {                                                       
+       4 +  useEffect,                                                   
+       5 +  useRef,                                                      
+       6 +  useState,                                                    
+       7 +  type ChangeEvent,                                            
+       8 +  type FormEvent,                                              
+       9 +} from "react";                                                
+      10  import { Button } from "@/components/ui/Button";
+      11  import { ShortFull } from "@/components/ui/ShortFull";
+      12  import { captureAttribution, readAttribution } from "@/lib/attr
+          ibution";
+     ...
+      66    const idempotencyKey = useRef<string | null>(null);
+      67    const inFlight = useRef(false);
+      68    const lastPrefilled = useRef("");
+      63 -  const draftLoaded = useRef(false);                           
+      69  
+      70    // Время открытия формы, метки рекламы и черновик – только в 
+          браузере
+      71    useEffect(() => {
+     ...
+      78      );
+      79      const draft = loadDraft(getStorage("sessionStorage"));
+      80      if (draft) setValues((v) => ({ ...v, ...draft }));
+      76 -    draftLoaded.current = true;                                
+      81    }, []);
+      82  
+      83    useEffect(() => {
+      80 -    if (!draftLoaded.current) return;                          
+      84      saveDraft(getStorage("sessionStorage"), {
+      85        name: values.name,
+      86        phone: values.phone,
+     ...
+      212      name: field,
+      213      value: values[field],
+      214      onChange: (
+      212 -      event: React.ChangeEvent<HTMLInputElement | HTMLTextArea
+          -Element>,                                                     
+      215 +      event: ChangeEvent<HTMLInputElement | HTMLTextAreaElemen
+          +t>,                                                           
+      216      ) => setField(field, event.target.value),
+      217      onBlur: () => handleBlur(field),
+      218      "aria-invalid": errors[field] ? true : undefined,
+  ⎿  Found 4 new diagnostic issues in 1 file (ctrl+o to expand)
+
+  Searched for 1 pattern (ctrl+o to expand)
+  ⎿  Found 4 new diagnostic issues in 1 file (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/lead-form/LeadForm.tsx'…)
+  ⎿  232:      }} className="flex flex-col gap-6">
+  ⎿  Updated components/lead-form/LeadForm.tsx (+11 -5)
+       5    useRef,
+       6    useState,
+       7    type ChangeEvent,
+       8 -  type FormEvent,                                              
+       8  } from "react";
+       9  import { Button } from "@/components/ui/Button";
+      10  import { ShortFull } from "@/components/ui/ShortFull";
+     ...
+      75        getStorage("localStorage"),
+      76        new Date(),
+      77      );
+      78 +    // sessionStorage есть только в браузере: в начальном состо
+         +янии черновик                                                  
+      79 +    // разошёлся бы с HTML статической сборки при гидратации   
+      80      const draft = loadDraft(getStorage("sessionStorage"));
+      81 +    // eslint-disable-next-line react-hooks/set-state-in-effect
+      82      if (draft) setValues((v) => ({ ...v, ...draft }));
+      83    }, []);
+      84  
+     ...
+      139      if (first) fieldRefs.current[first]?.focus();
+      140    }
+      141  
+      140 -  async function handleSubmit(event: FormEvent<HTMLFormElement
+          ->) {                                                          
+      141 -    event.preventDefault();                                   
+      142 +  async function handleSubmit() {                             
+      143      if (inFlight.current) return;
+      144  
+      145      const fieldErrors = validateForm(values);
+     ...
+      224    });
+      225  
+      226    return (
+      226 -    <form noValidate onSubmit={handleSubmit} className="flex f
+          -lex-col gap-6">                                               
+      227 +    <form                                                     
+      228 +      noValidate                                              
+      229 +      className="relative flex flex-col gap-6" onSubmit={(even
+          +t) => {                                                       
+      230 +        event.preventDefault();                               
+      231 +        void handleSubmit();                                  
+      232 +      }} className="flex flex-col gap-6">                     
+      233        <Field id="lead-name" label={form.name.label} error={err
+           ors.name}>
+      234          <input
+      235            {...inputProps("name")}
+     ...
+      290        {/* Ловушка для ботов: вне экрана, вне порядка Tab и дер
+           ева доступности */}
+     … 7 more lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/lead-form/LeadForm.tsx'…)
+  ⎿  npm notice run kvarta@0.1.0 npx
+     npm notice run 'prettier' --write components/lead-form lib
+             event.preventDefault();
+     … +16 lines (ctrl+o to expand)
+  ⎿  Updated components/lead-form/LeadForm.tsx (+7 -11)
+       1  "use client";
+       2  
+       3 -import {                                                       
+       4 -  useEffect,                                                   
+       5 -  useRef,                                                      
+       6 -  useState,                                                    
+       7 -  type ChangeEvent,                                            
+       8 -} from "react";                                                
+       3 +import { useEffect, useRef, useState, type ChangeEvent } from "
+         +react";                                                        
+       4  import { Button } from "@/components/ui/Button";
+       5  import { ShortFull } from "@/components/ui/ShortFull";
+       6  import { captureAttribution, readAttribution } from "@/lib/attr
+          ibution";
+     ...
+      207      id: `lead-${field}`,
+      208      name: field,
+      209      value: values[field],
+      215 -    onChange: (                                               
+      216 -      event: ChangeEvent<HTMLInputElement | HTMLTextAreaElemen
+          -t>,                                                           
+      217 -    ) => setField(field, event.target.value),                 
+      210 +    onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextA
+          +reaElement>) =>                                               
+      211 +      setField(field, event.target.value),                    
+      212      onBlur: () => handleBlur(field),
+      213      "aria-invalid": errors[field] ? true : undefined,
+      214      "aria-describedby": fieldDescribedBy(`lead-${field}`, {
+     ...
+      220    return (
+      221      <form
+      222        noValidate
+      229 -      className="relative flex flex-col gap-6" onSubmit={(even
+          -t) => {                                                       
+      223 +      className="relative flex flex-col gap-6"                
+      224 +      onSubmit={(event) => {                                  
+      225          event.preventDefault();
+      226          void handleSubmit();
+      232 -      }} className="flex flex-col gap-6">                     
+      227 +      }}                                                      
+      228 +    >                                                         
+      229        <Field id="lead-name" label={form.name.label} error={err
+           ors.name}>
+      230          <input
+      231            {...inputProps("name")}
+
+⏺ Форма написана, подключаю её в секцию #order и вешаю data-атрибуты на CTA.
+
+⏺ Bash(python3 - <<'EOF'
+      import re…)
+  ⎿  15:  const [primary, secondary] = hero.ctas;
+     45:          <ButtonLink href={ORDER_HREF} size="lg" {...prefillAttrs(
+     primary)}>
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated components/MobileBar.tsx (+2 -1)
+       4  import { ButtonLink } from "@/components/ui/Button";
+       5  import { cn } from "@/lib/cn";
+       6  import { LEAD_FORM_ID, mobileBar, ORDER_HREF } from "@/lib/cont
+          ent";
+       7 +import { prefillAttrs } from "@/lib/prefill";                  
+       8  
+       9  // Нижняя плашка < md: появляется, когда hero ушёл вверх за экр
+          ан,
+      10  // и прячется, пока форма заявки в зоне видимости (ТЗ, раздел 4
+          ).
+     ...
+      52              {mobileBar.price}
+      53            </span>
+      54          </p>
+      54 -        <ButtonLink href={ORDER_HREF} size="lg">               
+      55 +        <ButtonLink href={ORDER_HREF} size="lg" {...prefillAttr
+         +s(mobileBar)}>                                                 
+      56            {mobileBar.cta}
+      57          </ButtonLink>
+      58        </div>
+  ⎿  Updated components/sections/Catalog.tsx (+5 -0)
+      3  import { Label, type LabelTone } from "@/components/ui/Label";
+      4  import { ShortFull } from "@/components/ui/ShortFull";
+      5  import { coffee, CURRENCY, ORDER_HREF } from "@/lib/content";
+      6 +import { prefillAttrs } from "@/lib/prefill";                   
+      7  
+      8  // Цвет метки и фон этикетки по порядку карточек, как в макете
+      9  const LABEL_STYLES: { tag: LabelTone; card: CardTone }[] = [
+     ...
+      70                  </p>
+      71                  <ButtonLink
+      72                    href={ORDER_HREF}
+      73 +                  {...prefillAttrs({                           
+      74 +                    interest: "order",                         
+      75 +                    comment: item.orderComment,                
+      76 +                  })}                                          
+      77                    variant="dark"
+      78                    size="sm"
+      79                    className="shrink-0"
+  ⎿  Updated components/sections/Hero.tsx (+8 -2)
+       5  import { ShortFull } from "@/components/ui/ShortFull";
+       6  import { cn } from "@/lib/cn";
+       7  import { hero, ORDER_HREF } from "@/lib/content";
+       8 +import { prefillAttrs } from "@/lib/prefill";                  
+       9  
+      10  // Две колонки с lg: фото 460 px в контейнере 1280, иначе ~35vw
+          ; на md – до 448 px
+      11  const PHOTO_SIZES =
+     ...
+      42          </p>
+      43  
+      44          <div className="mt-7 flex flex-col gap-4 md:flex-row md
+          :flex-wrap lg:mt-8">
+      44 -          <ButtonLink href={ORDER_HREF} size="lg">             
+      45 +          <ButtonLink href={ORDER_HREF} size="lg" {...prefillAt
+         +trs(primary)}>                                                 
+      46              {primary.label}
+      47            </ButtonLink>
+      47 -          <ButtonLink href={ORDER_HREF} size="lg" variant="outl
+         -ine">                                                          
+      48 +          <ButtonLink                                          
+      49 +            href={ORDER_HREF}                                  
+      50 +            size="lg"                                          
+      51 +            variant="outline"                                  
+      52 +            {...prefillAttrs(secondary)}                       
+      53 +          >                                                    
+      54              {secondary.label}
+      55            </ButtonLink>
+      56          </div>
+  ⎿  Updated components/sections/Order.tsx (+2 -2)
+      1 +import { LeadForm } from "@/components/lead-form/LeadForm";     
+      2  import { Card } from "@/components/ui/Card";
+      3  import { Photo } from "@/components/ui/Photo";
+      4  import { LEAD_FORM_ID, order } from "@/lib/content";
+     ...
+      18          {order.title}
+      19        </h2>
+      20  
+      20 -      {/* Форма заявки – шаг 8 (LeadForm). Пока только каркас к
+         -арточки. */}                                                   
+      21        <Card
+      22          id={LEAD_FORM_ID}
+      23          tone="white"
+      24          shadow="lg"
+      25          className="mt-6 mr-2.5 p-5 lg:col-start-2 lg:row-span-2
+           lg:row-start-1 lg:mt-0 lg:mr-3 lg:self-start lg:p-9"
+      26        >
+      27 -        <p className="text-sm text-brown">{order.form.note}</p>
+      27 +        <LeadForm />                                           
+      28        </Card>
+      29  
+      30        <div className="mt-8 lg:mt-9">
+  ⎿  Updated components/sections/Subscription.tsx (+6 -1)
+      3  import { Photo } from "@/components/ui/Photo";
+      4  import { ShortFull } from "@/components/ui/ShortFull";
+      5  import { ORDER_HREF, subscription } from "@/lib/content";
+      6 +import { prefillAttrs } from "@/lib/prefill";                   
+      7  
+      8  // С lg фото в колонке фиксированной ширины 504 px
+      9  const PHOTO_SIZES = "(min-width: 1024px) 504px, calc(100vw - 40p
+         x)";
+     ...
+      21        <div className="container-page grid gap-x-12 lg:grid-cols
+          -[1fr_minmax(0,31.5rem)] lg:grid-rows-[auto_1fr]">
+      22          <div className="lg:self-end">
+      23            <p className="type-label">{subscription.tag}</p>
+      23 -          <h2 id="subscription-title" className="type-h2 mt-5 l
+         -g:mt-7 lg:tracking-normal">                                    
+      24 +          <h2                                                  
+      25 +            id="subscription-title"                            
+      26 +            className="type-h2 mt-5 lg:mt-7 lg:tracking-normal"
+      27 +          >                                                    
+      28              {subscription.title}
+      29            </h2>
+      30          </div>
+     ...
+      61            </p>
+      62            <ButtonLink
+      63              href={ORDER_HREF}
+      64 +            {...prefillAttrs(subscription.cta)}                
+      65              variant="dark"
+      66              size="lg"
+      67              className="mt-6 w-full lg:mt-8 lg:w-auto"
+
+⏺ Write(tests/unit/attribution.test.ts)
+  ⎿  Wrote 197 lines to tests/unit/attribution.test.ts
+       1 import { describe, expect, it } from "vitest";
+       2 import {
+       3   ATTRIBUTION_MAX,
+       4   ATTRIBUTION_STORAGE_KEY,
+       5   ATTRIBUTION_TTL_MS,
+       6   captureAttribution,
+       7   parseMarks,
+       8   readAttribution,
+       9 } from "@/lib/attribution";
+      10 import { parseLead } from "@/lib/lead/schema";
+     … +202 lines (ctrl+o to expand)
+
+⏺ Write(tests/unit/lead-submit.test.ts)
+  ⎿  Wrote 150 lines to tests/unit/lead-submit.test.ts
+      1 import { describe, expect, it, vi } from "vitest";
+      2 import { z } from "zod";
+      3 import { order } from "@/lib/content";
+      4 import {
+      5   createIdempotencyKey,
+      6   LEAD_ENDPOINT,
+      7   submitLead,
+      8   type LeadPayload,
+      9 } from "@/lib/lead/submit";
+     … +151 lines (ctrl+o to expand)
+
+⏺ Write(tests/unit/lead-form.test.ts)
+  ⎿  Wrote 137 lines to tests/unit/lead-form.test.ts
+       1 import { describe, expect, it } from "vitest";
+       2 import { order } from "@/lib/content";
+       3 import { callbackText, callbackWindow } from "@/lib/lead/callbac
+         k";
+       4 import {
+       6   loadDraft,
+       7   saveDraft,
+       8   validateField,
+       9   validateForm,
+      10 } from "@/lib/lead/form";
+     … +145 lines (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      p='lib/lead/callback.ts'…)
+  ⎿  (!) Your Vite config uses features that are unsupported by `configLoad
+     er: 'native'`, which is planned to become the default in a future majo
+     r version of Vite:
+     … +17 lines (ctrl+o to expand)
+  ⎿  Updated lib/lead/callback.ts (+4 -2)
+      72    const window = callbackWindow(now);
+      73    if (!window) return null;
+      74    const { status } = order.form;
+      75 +  // «08:00» из часов для JSON-LD → «8:00», как в тексте страни
+         +цы                                                             
+      76 +  const time = window.time.replace(/^0(?=\d:)/, "");           
+      77    return window.kind === "until"
+      76 -    ? status.callbackUntil(window.time)                        
+      77 -    : status.callbackAfter(window.dayOffset, window.time);     
+      78 +    ? status.callbackUntil(time)                               
+      79 +    : status.callbackAfter(window.dayOffset, time);            
+      80  }
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bash(python3 - <<'EOF'
+      import re…)
+  ⎿  35:  return vi.fn<typeof fetch>(async () =>
+     59:      submitLead(payload, { fetch: respond(status, body) }),
+     64:    await expect(submitLead(payload, { fetch: respond(201) })).reso
+     … +7 lines (ctrl+o to expand)
+  ⎿  Updated tests/unit/lead-submit.test.ts (+14 -17)
+      41  
+      42  describe("submitLead", () => {
+      43    it("posts JSON to the lead endpoint", async () => {
+      44 -    const fetch = respond(201, { ok: true, id: "x", duplicate: 
+         -false });                                                      
+      45 -    await submitLead(payload, { fetch });                      
+      44 +    const doFetch = respond(201, { ok: true, id: "x", duplicate
+         +: false });                                                    
+      45 +    await submitLead(payload, { fetch: doFetch });             
+      46  
+      47 -    const [url, init] = fetch.mock.calls[0]!;                  
+      47 +    const [url, init] = doFetch.mock.calls[0]!;                
+      48      expect(url).toBe(LEAD_ENDPOINT);
+      49      expect(init?.method).toBe("POST");
+      50      expect(init?.headers).toEqual({ "Content-Type": "applicatio
+          n/json" });
+     ...
+      67    });
+      68  
+      69    it("keeps only form field errors from a 400", async () => {
+      70 -    const fetch = respond(400, {                               
+      70 +    const doFetch = respond(400, {                             
+      71        ok: false,
+      72        error: "validation",
+      73        fields: { phone: order.form.errors.phone, idempotencyKey:
+           "Invalid" },
+      74      });
+      75 -    await expect(submitLead(payload, { fetch })).resolves.toEqu
+         -al({                                                           
+      75 +    await expect(submitLead(payload, { fetch: doFetch })).resol
+         +ves.toEqual({                                                  
+      76        kind: "validation",
+      77        fields: { phone: order.form.errors.phone },
+      78      });
+      79    });
+      80  
+      81    it("maps a 400 with no form field errors to server", async ()
+           => {
+      82 -    const fetch = respond(400, {                               
+      82 +    const doFetch = respond(400, {                             
+      83        ok: false,
+      84        error: "validation",
+      85        fields: { attribution: "Invalid" },
+      86      });
+      87 -    await expect(submitLead(payload, { fetch })).resolves.toEqu
+         -al({                                                           
+      87 +    await expect(submitLead(payload, { fetch: doFetch })).resol
+         +ves.toEqual({                                                  
+      88        kind: "server",
+      89      });
+     … 48 more lines (ctrl+o to expand)
+
+⏺ Тесты, lint и typecheck зелёные. Запускаю dev-сервер, чтобы проверить форму
+  вживую и снять скриншоты.
+
+  Read 2 files, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Верстка почти соответствует макету — уменьшу шрифт чипов до 15px. Затем
+  прогоню сценарии формы через Playwright: предзаполнение, ошибки, сеть, двойной
+  клик, UTM.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Нашёл баг: CTA подписки не очищал комментарий от карточки сорта, так как
+  lastPrefilled перезаписывался раньше вызова апдейтера React. Исправляю.
+
+  Searched for 1 pattern (ctrl+o to expand)
+⏺ Bash(python3 - <<'EOF'
+      p='components/lead-form/LeadForm.tsx'…)
+  ⎿  stored attribution: {"utm_source":"instagram","utm_medium":"paid_socia
+     l","utm_campaign":"autumn_sub"
+     interest after coffee CTA: order | comment: Колумбия Уила, 250 г
+     … +28 lines (ctrl+o to expand)
+  ⎿  Updated components/lead-form/LeadForm.tsx (+4 -2)
+       89      function onClick(event: MouseEvent) {
+       90        const prefill = readPrefill(event.target);
+       91        if (!prefill) return;
+       92 +      // Апдейтер React вызовет позже – прошлое значение берём
+          + заранее                                                      
+       93 +      const previous = lastPrefilled.current;                 
+       94 +      lastPrefilled.current = prefill.comment ?? "";          
+       95        setValues((v) => ({
+       96          ...v,
+       97          interest: prefill.interest,
+       95 -        comment: nextComment(v.comment, lastPrefilled.current,
+          - prefill.comment),                                            
+       98 +        comment: nextComment(v.comment, previous, prefill.comm
+          +ent),                                                         
+       99        }));
+       97 -      lastPrefilled.current = prefill.comment ?? "";          
+      100      }
+      101      document.addEventListener("click", onClick);
+      102      return () => document.removeEventListener("click", onClick
+           );
+
+⏺ Все сценарии прошли успешно: предзаполнение, ошибки на blur, фокус на неверном
+  поле, форматирование, черновик, сетевые сбои, 500-ошибка, повтор с тем же
+  ключом и защита от двойного клика, а UTM-метки корректно передались в запрос.
+  Теперь убираю состояния ошибки и успеха.
+
+  Read 3 files, ran 1 shell command (ctrl+o to expand)
+
+⏺ Скриншоты в порядке, но нашёл мелочь: тире в «– перезвоним» переносится на
+  новую строку. Добавлю неразрывный пробел перед тире в текстах состояний.
+
+⏺ Bash(python3 - <<'EOF'
+      p='lib/content.ts'…)
+  ⎿     Start at  13:58:04
+        Duration  1.25s (tests 46%, import 42%, transform 10%, worker 2%)
+     … +6 lines (ctrl+o to expand)
+  ⎿  Updated lib/content.ts (+2 -3)
+      291      status: {
+      292        successTitle: (name: string) => `Спасибо, ${name}!`,
+      293        successText: (phone: string) => `Перезвоним на ${phone}`
+           ,
+      294 -      duplicate: "Заявка с этого номера уже у нас – перезвоним
+          -",                                                            
+      295 -      network:                                                
+      296 -        "Не получилось отправить – похоже, пропал интернет. Да
+          -нные сохранили, нажмите «Повторить»",                         
+      294 +      duplicate: `Заявка с этого номера уже у нас${NBSP}– пере
+          +звоним`,                                                      
+      295 +      network: `Не получилось отправить${NBSP}– похоже, пропал
+          + интернет. Данные сохранили, нажмите «Повторить»`,            
+      296        server:
+      297          "У нас что-то сломалось. Попробуйте ещё раз через мину
+           ту или напишите нам в Instagram",
+      298        rateLimited:
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Проверки и сборка прошли успешно, страница осталась статической (○). Теперь
+  замерю размер клиентского бандла через pnpm exec, не читая node_modules.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Клиентский код формы и плашки весит около 5 КБ gzip при бюджете 15 КБ.
+  Дописываю NOTES.md и коммичу по частям.
+
+⏺ Bash(cat >> NOTES.md <<'EOF'
+      - Шаг 8: CTA – серверные ссылки на `#order` с
+      `data-interest`/`data-comment`, форма ловит клики делегированием на
+      `document`. Клиентских…)
+  ⎿  21dd3cb docs(notes): record lead form decisions
+     7ddb76b feat(form): prefill interest and comment from page CTAs
+     9f44fa5 feat(form): add lead form with states to the order section
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated NOTES.md (+1 -0)
+      15  
+      16  - Шаг 6: zod только на сервере (`lib/lead/schema.ts`), форма пр
+          оверяет поля через `lib/lead/rules.ts` без zod. Замер esbuild: 
+          полный zod ~25 КБ gzip, даже `zod/mini` со схемой ~10 КБ – почт
+          и весь бюджет клиентского JS (15 КБ); `rules.ts` – 0,3 КБ. Атри
+          буция не валит заявку: кривые поля → `null`, длинные обрезаются
+           до 500 символов.
+      17  - Шаг 7: в одной транзакции блокировки по IP, потом по номеру (
+          порядок фиксирован – без взаимных блокировок). Сначала дубль, п
+          отом лимит: повтор той же заявки получает 200, а не 429. Один `
+          idempotencyKey` с разными номерами ловит `ON CONFLICT DO NOTHIN
+          G`. `startedAt` в будущем (часы телефона спешат) ботом не счита
+          ем. Без `IP_HASH_SALT` в production – 500: IPv4 без соли восста
+          навливается перебором. Запрос без `Origin` – 403. В лог из ошиб
+          ки postgres.js берём только `code` и `message`: в `parameters` 
+          лежит номер.
+      18 +- Шаг 8: CTA – серверные ссылки на `#order` с `data-interest`/`
+         +data-comment`, форма ловит клики делегированием на `document`. 
+         +Клиентских CTA-компонентов нет, без JS ссылка просто прокручива
+         +ет к форме. Комментарий из CTA заменяет только пустое поле или 
+         +текст прошлого CTA. Ошибку на blur не показываем, если пустое п
+         +оле просто проскочили табом. Кнопка во время отправки `disabled
+         +`, второй запрос дополнительно режет `inFlight`. LeadForm + Mob
+         +ileBar с `content.ts` – ~5 КБ gzip (esbuild).                  
+
+⏺ Проверяю, что каждый коммит собирается сам по себе (история ещё не запушена):
+
+⏺ Bash(GIT_SEQUENCE_EDITOR=true git rebase -q --exec "pnpm -s typecheck
+      >/dev/null 2>&1 && pnpm -s lint >/dev/null 2>&1 || { echo FAIL at \$(git
+      log -1 --format=%s); e…)
+  ⎿  You can fix the problem, and then run
+
+       git rebase --continue
+     … +3 lines (ctrl+o to expand)
+  ⎿  Updated NOTES.md (+0 -1)
+      15  
+      16  - Шаг 6: zod только на сервере (`lib/lead/schema.ts`), форма пр
+          оверяет поля через `lib/lead/rules.ts` без zod. Замер esbuild: 
+          полный zod ~25 КБ gzip, даже `zod/mini` со схемой ~10 КБ – почт
+          и весь бюджет клиентского JS (15 КБ); `rules.ts` – 0,3 КБ. Атри
+          буция не валит заявку: кривые поля → `null`, длинные обрезаются
+           до 500 символов.
+      17  - Шаг 7: в одной транзакции блокировки по IP, потом по номеру (
+          порядок фиксирован – без взаимных блокировок). Сначала дубль, п
+          отом лимит: повтор той же заявки получает 200, а не 429. Один `
+          idempotencyKey` с разными номерами ловит `ON CONFLICT DO NOTHIN
+          G`. `startedAt` в будущем (часы телефона спешат) ботом не счита
+          ем. Без `IP_HASH_SALT` в production – 500: IPv4 без соли восста
+          навливается перебором. Запрос без `Origin` – 403. В лог из ошиб
+          ки postgres.js берём только `code` и `message`: в `parameters` 
+          лежит номер.
+      18 -- Шаг 8: CTA – серверные ссылки на `#order` с `data-interest`/`
+         -data-comment`, форма ловит клики делегированием на `document`. 
+         -Клиентских CTA-компонентов нет, без JS ссылка просто прокручива
+         -ет к форме. Комментарий из CTA заменяет только пустое поле или 
+         -текст прошлого CTA. Ошибку на blur не показываем, если пустое п
+         -оле просто проскочили табом. Кнопка во время отправки `disabled
+         -`, второй запрос дополнительно режет `inFlight`. LeadForm + Mob
+         -ileBar с `content.ts` – ~5 КБ gzip (esbuild).                  
+  ⎿  Updated components/MobileBar.tsx (+1 -2)
+       4  import { ButtonLink } from "@/components/ui/Button";
+       5  import { cn } from "@/lib/cn";
+       6  import { LEAD_FORM_ID, mobileBar, ORDER_HREF } from "@/lib/cont
+          ent";
+       7 -import { prefillAttrs } from "@/lib/prefill";                  
+       7  
+       8  // Нижняя плашка < md: появляется, когда hero ушёл вверх за экр
+          ан,
+       9  // и прячется, пока форма заявки в зоне видимости (ТЗ, раздел 4
+          ).
+     ...
+      51              {mobileBar.price}
+      52            </span>
+      53          </p>
+      55 -        <ButtonLink href={ORDER_HREF} size="lg" {...prefillAttr
+         -s(mobileBar)}>                                                 
+      54 +        <ButtonLink href={ORDER_HREF} size="lg">               
+      55            {mobileBar.cta}
+      56          </ButtonLink>
+      57        </div>
+  ⎿  Deleted components/lead-form/Field.tsx (+0 -48)
+       1 -import type { ReactNode } from "react";                        
+       2 -                                                               
+       3 -// Поле ввода: 18 px, рамка ink; ошибка – рамка orange (на бело
+         -м 3,7:1 –                                                      
+       4 -// достаточно для границы) и текст ink с оранжевой чертой. Фоку
+         -с – глобальный                                                 
+       5 -export const controlClasses =                                  
+       6 -  "block w-full border-2 border-ink bg-white px-4 text-lg text-
+         -ink placeholder:text-ink/55 aria-invalid:border-orange";       
+       7 -                                                               
+       8 -type FieldProps = {                                            
+       9 -  id: string;                                                  
+      10 -  label: string;                                               
+      11 -  hint?: string;                                               
+      12 -  error?: string;                                              
+      13 -  children: ReactNode;                                         
+      14 -};                                                             
+      15 -                                                               
+      16 -export function fieldDescribedBy(                              
+      17 -  id: string,                                                  
+      18 -  { hint, error }: { hint?: string; error?: string },          
+      19 -): string | undefined {                                        
+      20 -  return (                                                     
+      21 -    [hint && `${id}-hint`, error && `${id}-error`].filter(Boole
+         -an).join(" ") ||                                               
+      22 -    undefined                                                  
+      23 -  );                                                           
+      24 -}                                                              
+      25 -                                                               
+      26 -export function Field({ id, label, hint, error, children }: Fie
+         -ldProps) {                                                     
+      27 -  return (                                                     
+      28 -    <div>                                                      
+      29 -      <label htmlFor={id} className="block text-[0.9375rem] fon
+         -t-bold">                                                       
+      30 -        {label}                                                
+      31 -      </label>                                                 
+      32 -      <div className="mt-2">{children}</div>                   
+      33 -      {hint && (                                               
+      34 -        <p id={`${id}-hint`} className="mt-2 text-sm text-brown
+         -">                                                             
+      35 -          {hint}                                               
+      36 -        </p>                                                   
+      37 -      )}                                                       
+      38 -      {error && (                                              
+      39 -        <p                                                     
+      40 -          id={`${id}-error`}                                   
+     … 8 more lines (ctrl+o to expand)
+  ⎿  Deleted components/lead-form/FormStatus.tsx (+0 -72)
+       1 -import { useEffect, useRef } from "react";                     
+       2 -import { order } from "@/lib/content";                         
+       3 -                                                               
+       4 -const { status } = order.form;                                 
+       5 -                                                               
+       6 -export type FormErrorReason = "network" | "server" | "rate_limi
+         -ted";                                                          
+       7 -                                                               
+       8 -const errorTexts: Record<FormErrorReason, string> = {          
+       9 -  network: status.network,                                     
+      10 -  server: status.server,                                       
+      11 -  rate_limited: status.rateLimited,                            
+      12 -};                                                             
+      13 -                                                               
+      14 -// Ошибка отправки над кнопкой. Instagram – запасной канал, ког
+         -да виноваты мы                                                 
+      15 -export function FormError({ reason }: { reason: FormErrorReason
+         - }) {                                                          
+      16 -  return (                                                     
+      17 -    <div role="alert" className="border-l-4 border-orange bg-pa
+         -per p-4 text-sm">                                              
+      18 -      <p className="font-medium">{errorTexts[reason]}</p>      
+      19 -      {reason !== "network" && (                               
+      20 -        <a                                                     
+      21 -          href={status.instagram.href}                         
+      22 -          target="_blank"                                      
+      23 -          rel="noopener noreferrer"                            
+      24 -          className="mt-2 inline-flex min-h-12 items-center fon
+         -t-bold underline decoration-2 underline-offset-4 hover:decorati
+         -on-orange"                                                     
+      25 -        >                                                      
+      26 -          {status.instagram.label}                             
+      27 -        </a>                                                   
+      28 -      )}                                                       
+      29 -    </div>                                                     
+      30 -  );                                                           
+      31 -}                                                              
+      32 -                                                               
+      33 -type FormSuccessProps = {                                      
+      34 -  name: string;                                                
+      35 -  phone: string;                                               
+      36 -  duplicate: boolean;                                          
+      37 -  callback: string | null;                                     
+      38 -};                                                             
+      39 -                                                               
+      40 -// Карточка вместо формы: фокус на заголовок, чтобы скринридер 
+         -прочитал итог                                                  
+     … 32 more lines (ctrl+o to expand)
+  ⎿  Deleted components/lead-form/InterestChips.tsx (+0 -42)
+       1 -import { interestLabels, order, type Interest } from "@/lib/con
+         -tent";                                                         
+       2 -import { isInterest } from "@/lib/prefill";                    
+       3 -                                                               
+       4 -const interests = Object.keys(interestLabels) as Interest[];   
+       5 -                                                               
+       6 -type InterestChipsProps = {                                    
+       7 -  value: Interest;                                             
+       8 -  onChange: (value: Interest) => void;                         
+       9 -};                                                             
+      10 -                                                               
+      11 -// radio-группа, визуально – чипы ≥ 48 px: на мобильной столбик
+         -ом во всю                                                      
+      12 -// ширину, с md – в ряд. Выбранный – ink, фокус рисуем на чипе:
+         - сам radio скрыт                                               
+      13 -export function InterestChips({ value, onChange }: InterestChip
+         -sProps) {                                                      
+      14 -  return (                                                     
+      15 -    <fieldset>                                                 
+      16 -      <legend className="text-[0.9375rem] font-bold">          
+      17 -        {order.form.interest.label}                            
+      18 -      </legend>                                                
+      19 -      <div className="mt-2 flex flex-col gap-2 md:flex-row md:f
+         -lex-wrap">                                                     
+      20 -        {interests.map((interest) => (                         
+      21 -          <label                                               
+      22 -            key={interest}                                     
+      23 -            className="flex min-h-12 cursor-pointer items-cente
+         -r border-2 border-ink bg-white px-4 text-[0.9375rem] font-bold 
+         -has-checked:bg-ink has-checked:text-white has-focus-visible:out
+         -line-3 has-focus-visible:outline-offset-3 has-focus-visible:out
+         -line-ink md:px-5"                                              
+      24 -          >                                                    
+      25 -            <input                                             
+      26 -              type="radio"                                     
+      27 -              name="interest"                                  
+      28 -              value={interest}                                 
+      29 -              checked={value === interest}                     
+      30 -              onChange={(event) => {                           
+      31 -                if (isInterest(event.target.value))            
+      32 -                  onChange(event.target.value);                
+      33 -              }}                                               
+      34 -              className="sr-only"                              
+      35 -            />                                                 
+      36 -            {order.form.interest.options[interest]}            
+      37 -          </label>                                             
+      38 -        ))}                                                    
+      39 -      </div>                                                   
+      40 -    </fieldset>                                                
+     … 2 more lines (ctrl+o to expand)
+  ⎿  … 5 more files changed
+  ⎿  Found 16 new diagnostic issues in 1 file (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Коммит с хелперами не собирался: note в content.ts стал объектом { full, short
+  }, а Order.tsx рендерил его как строку. Исправляю это прямо в текущем
+  коммите.
+
+⏺ Bash(python3 - <<'EOF'
+      p='components/sections/Order.tsx'…)
+  ⎿  hint: To abort and get back to the state before "git rebase", run "git
+      rebase --abort".
+     hint: Disable this message with "git config set advice.mergeConflict f
+     … +7 lines (ctrl+o to expand)
+  ⎿  Created components/lead-form/Field.tsx (+48 -0)
+       1 +import type { ReactNode } from "react";                        
+       2 +                                                               
+       3 +// Поле ввода: 18 px, рамка ink; ошибка – рамка orange (на бело
+         +м 3,7:1 –                                                      
+       4 +// достаточно для границы) и текст ink с оранжевой чертой. Фоку
+         +с – глобальный                                                 
+       5 +export const controlClasses =                                  
+       6 +  "block w-full border-2 border-ink bg-white px-4 text-lg text-
+         +ink placeholder:text-ink/55 aria-invalid:border-orange";       
+       7 +                                                               
+       8 +type FieldProps = {                                            
+       9 +  id: string;                                                  
+      10 +  label: string;                                               
+      11 +  hint?: string;                                               
+      12 +  error?: string;                                              
+      13 +  children: ReactNode;                                         
+      14 +};                                                             
+      15 +                                                               
+      16 +export function fieldDescribedBy(                              
+      17 +  id: string,                                                  
+      18 +  { hint, error }: { hint?: string; error?: string },          
+      19 +): string | undefined {                                        
+      20 +  return (                                                     
+      21 +    [hint && `${id}-hint`, error && `${id}-error`].filter(Boole
+         +an).join(" ") ||                                               
+      22 +    undefined                                                  
+      23 +  );                                                           
+      24 +}                                                              
+      25 +                                                               
+      26 +export function Field({ id, label, hint, error, children }: Fie
+         +ldProps) {                                                     
+      27 +  return (                                                     
+      28 +    <div>                                                      
+      29 +      <label htmlFor={id} className="block text-[0.9375rem] fon
+         +t-bold">                                                       
+      30 +        {label}                                                
+      31 +      </label>                                                 
+      32 +      <div className="mt-2">{children}</div>                   
+      33 +      {hint && (                                               
+      34 +        <p id={`${id}-hint`} className="mt-2 text-sm text-brown
+         +">                                                             
+      35 +          {hint}                                               
+      36 +        </p>                                                   
+      37 +      )}                                                       
+      38 +      {error && (                                              
+      39 +        <p                                                     
+      40 +          id={`${id}-error`}                                   
+     … 8 more lines (ctrl+o to expand)
+  ⎿  Created components/lead-form/FormStatus.tsx (+72 -0)
+       1 +import { useEffect, useRef } from "react";                     
+       2 +import { order } from "@/lib/content";                         
+       3 +                                                               
+       4 +const { status } = order.form;                                 
+       5 +                                                               
+       6 +export type FormErrorReason = "network" | "server" | "rate_limi
+         +ted";                                                          
+       7 +                                                               
+       8 +const errorTexts: Record<FormErrorReason, string> = {          
+       9 +  network: status.network,                                     
+      10 +  server: status.server,                                       
+      11 +  rate_limited: status.rateLimited,                            
+      12 +};                                                             
+      13 +                                                               
+      14 +// Ошибка отправки над кнопкой. Instagram – запасной канал, ког
+         +да виноваты мы                                                 
+      15 +export function FormError({ reason }: { reason: FormErrorReason
+         + }) {                                                          
+      16 +  return (                                                     
+      17 +    <div role="alert" className="border-l-4 border-orange bg-pa
+         +per p-4 text-sm">                                              
+      18 +      <p className="font-medium">{errorTexts[reason]}</p>      
+      19 +      {reason !== "network" && (                               
+      20 +        <a                                                     
+      21 +          href={status.instagram.href}                         
+      22 +          target="_blank"                                      
+      23 +          rel="noopener noreferrer"                            
+      24 +          className="mt-2 inline-flex min-h-12 items-center fon
+         +t-bold underline decoration-2 underline-offset-4 hover:decorati
+         +on-orange"                                                     
+      25 +        >                                                      
+      26 +          {status.instagram.label}                             
+      27 +        </a>                                                   
+      28 +      )}                                                       
+      29 +    </div>                                                     
+      30 +  );                                                           
+      31 +}                                                              
+      32 +                                                               
+      33 +type FormSuccessProps = {                                      
+      34 +  name: string;                                                
+      35 +  phone: string;                                               
+      36 +  duplicate: boolean;                                          
+      37 +  callback: string | null;                                     
+      38 +};                                                             
+      39 +                                                               
+      40 +// Карточка вместо формы: фокус на заголовок, чтобы скринридер 
+         +прочитал итог                                                  
+     … 32 more lines (ctrl+o to expand)
+  ⎿  Created components/lead-form/InterestChips.tsx (+42 -0)
+       1 +import { interestLabels, order, type Interest } from "@/lib/con
+         +tent";                                                         
+       2 +import { isInterest } from "@/lib/prefill";                    
+       3 +                                                               
+       4 +const interests = Object.keys(interestLabels) as Interest[];   
+       5 +                                                               
+       6 +type InterestChipsProps = {                                    
+       7 +  value: Interest;                                             
+       8 +  onChange: (value: Interest) => void;                         
+       9 +};                                                             
+      10 +                                                               
+      11 +// radio-группа, визуально – чипы ≥ 48 px: на мобильной столбик
+         +ом во всю                                                      
+      12 +// ширину, с md – в ряд. Выбранный – ink, фокус рисуем на чипе:
+         + сам radio скрыт                                               
+      13 +export function InterestChips({ value, onChange }: InterestChip
+         +sProps) {                                                      
+      14 +  return (                                                     
+      15 +    <fieldset>                                                 
+      16 +      <legend className="text-[0.9375rem] font-bold">          
+      17 +        {order.form.interest.label}                            
+      18 +      </legend>                                                
+      19 +      <div className="mt-2 flex flex-col gap-2 md:flex-row md:f
+         +lex-wrap">                                                     
+      20 +        {interests.map((interest) => (                         
+      21 +          <label                                               
+      22 +            key={interest}                                     
+      23 +            className="flex min-h-12 cursor-pointer items-cente
+         +r border-2 border-ink bg-white px-4 text-[0.9375rem] font-bold 
+         +has-checked:bg-ink has-checked:text-white has-focus-visible:out
+         +line-3 has-focus-visible:outline-offset-3 has-focus-visible:out
+         +line-ink md:px-5"                                              
+      24 +          >                                                    
+      25 +            <input                                             
+      26 +              type="radio"                                     
+      27 +              name="interest"                                  
+      28 +              value={interest}                                 
+      29 +              checked={value === interest}                     
+      30 +              onChange={(event) => {                           
+      31 +                if (isInterest(event.target.value))            
+      32 +                  onChange(event.target.value);                
+      33 +              }}                                               
+      34 +              className="sr-only"                              
+      35 +            />                                                 
+      36 +            {order.form.interest.options[interest]}            
+      37 +          </label>                                             
+      38 +        ))}                                                    
+      39 +      </div>                                                   
+      40 +    </fieldset>                                                
+     … 2 more lines (ctrl+o to expand)
+  ⎿  Created components/lead-form/LeadForm.tsx (+330 -0)
+        1 +"use client";                                                 
+        2 +                                                              
+        3 +import { useEffect, useRef, useState, type ChangeEvent } from 
+          +"react";                                                      
+        4 +import { Button } from "@/components/ui/Button";              
+        5 +import { ShortFull } from "@/components/ui/ShortFull";        
+        6 +import { captureAttribution, readAttribution } from "@/lib/att
+          +ribution";                                                    
+        7 +import { order, type Interest } from "@/lib/content";         
+        8 +import { callbackText } from "@/lib/lead/callback";           
+        9 +import {                                                      
+       10 +  clearDraft,                                                 
+       11 +  FORM_FIELDS,                                                
+       12 +  getStorage,                                                 
+       13 +  loadDraft,                                                  
+       14 +  saveDraft,                                                  
+       15 +  validateField,                                              
+       16 +  validateForm,                                               
+       17 +  type FormErrors,                                            
+       18 +  type FormField,                                             
+       19 +} from "@/lib/lead/form";                                     
+       20 +import { formatByPhone, normalizeByPhone } from "@/lib/lead/ph
+          +one";                                                         
+       21 +import { createIdempotencyKey, submitLead } from "@/lib/lead/s
+          +ubmit";                                                       
+       22 +import { nextComment, readPrefill } from "@/lib/prefill";     
+       23 +import { controlClasses, Field, fieldDescribedBy } from "./Fie
+          +ld";                                                          
+       24 +import { FormError, FormSuccess, type FormErrorReason } from "
+          +./FormStatus";                                                
+       25 +import { InterestChips } from "./InterestChips";              
+       26 +                                                              
+       27 +const { form } = order;                                       
+       28 +                                                              
+       29 +type Values = Record<FormField, string> & { interest: Interest
+          + };                                                           
+       30 +                                                              
+       31 +type Status =                                                 
+       32 +  | { kind: "idle" }                                          
+       33 +  | { kind: "submitting" }                                    
+       34 +  | { kind: "error"; reason: FormErrorReason }                
+       35 +  | {                                                         
+       36 +      kind: "done";                                           
+       37 +      name: string;                                           
+       38 +      phone: string;                                          
+       39 +      duplicate: boolean;                                     
+       40 +      callback: string | null;                                
+     … 290 more lines (ctrl+o to expand)
+  ⎿  Updated components/sections/Order.tsx (+9 -2)
+      1 +import { LeadForm } from "@/components/lead-form/LeadForm";     
+      2  import { Card } from "@/components/ui/Card";
+      3  import { Photo } from "@/components/ui/Photo";
+      4 +import { ShortFull } from "@/components/ui/ShortFull";          
+      5  import { LEAD_FORM_ID, order } from "@/lib/content";
+      6  
+      7  // Левая колонка с lg: 538 px в контейнере 1280, иначе ~43vw
+     ...
+      19          {order.title}
+      20        </h2>
+      21  
+      20 -      {/* Форма заявки – шаг 8 (LeadForm). Пока только каркас к
+         -арточки. */}                                                   
+      22        <Card
+      23          id={LEAD_FORM_ID}
+      24          tone="white"
+      25          shadow="lg"
+      26          className="mt-6 mr-2.5 p-5 lg:col-start-2 lg:row-span-2
+           lg:row-start-1 lg:mt-0 lg:mr-3 lg:self-start lg:p-9"
+      27        >
+      27 -        <p className="text-sm text-brown">{order.form.note}</p>
+      28 +<<<<<<< HEAD                                                   
+      29 +        <p className="text-sm text-brown">                     
+      30 +          <ShortFull text={order.form.note} />                 
+      31 +        </p>                                                   
+      32 +=======                                                        
+      33 +        <LeadForm />                                           
+      34 +>>>>>>> 9f44fa5 (feat(form): add lead form with states to the o
+         +rder section)                                                  
+      35        </Card>
+      36  
+      37        <div className="mt-8 lg:mt-9">
+
+⏺ Bash(git show 9f44fa5:components/sections/Order.tsx >
+      components/sections/Order.tsx && git add components/sections/Order.tsx &&
+      pnpm -s typecheck && pnpm -s lint &&…)
+  ⎿   create mode 100644 components/lead-form/FormStatus.tsx
+      create mode 100644 components/lead-form/InterestChips.tsx
+      create mode 100644 components/lead-form/LeadForm.tsx
+     … +6 lines (ctrl+o to expand)
+  ⎿  Updated NOTES.md (+1 -0)
+      15  
+      16  - Шаг 6: zod только на сервере (`lib/lead/schema.ts`), форма пр
+          оверяет поля через `lib/lead/rules.ts` без zod. Замер esbuild: 
+          полный zod ~25 КБ gzip, даже `zod/mini` со схемой ~10 КБ – почт
+          и весь бюджет клиентского JS (15 КБ); `rules.ts` – 0,3 КБ. Атри
+          буция не валит заявку: кривые поля → `null`, длинные обрезаются
+           до 500 символов.
+      17  - Шаг 7: в одной транзакции блокировки по IP, потом по номеру (
+          порядок фиксирован – без взаимных блокировок). Сначала дубль, п
+          отом лимит: повтор той же заявки получает 200, а не 429. Один `
+          idempotencyKey` с разными номерами ловит `ON CONFLICT DO NOTHIN
+          G`. `startedAt` в будущем (часы телефона спешат) ботом не счита
+          ем. Без `IP_HASH_SALT` в production – 500: IPv4 без соли восста
+          навливается перебором. Запрос без `Origin` – 403. В лог из ошиб
+          ки postgres.js берём только `code` и `message`: в `parameters` 
+          лежит номер.
+      18 +- Шаг 8: CTA – серверные ссылки на `#order` с `data-interest`/`
+         +data-comment`, форма ловит клики делегированием на `document`. 
+         +Клиентских CTA-компонентов нет, без JS ссылка просто прокручива
+         +ет к форме. Комментарий из CTA заменяет только пустое поле или 
+         +текст прошлого CTA. Ошибку на blur не показываем, если пустое п
+         +оле просто проскочили табом. Кнопка во время отправки `disabled
+         +`, второй запрос дополнительно режет `inFlight`. LeadForm + Mob
+         +ileBar с `content.ts` – ~5 КБ gzip (esbuild).                  
+  ⎿  Updated components/MobileBar.tsx (+2 -1)
+       4  import { ButtonLink } from "@/components/ui/Button";
+       5  import { cn } from "@/lib/cn";
+       6  import { LEAD_FORM_ID, mobileBar, ORDER_HREF } from "@/lib/cont
+          ent";
+       7 +import { prefillAttrs } from "@/lib/prefill";                  
+       8  
+       9  // Нижняя плашка < md: появляется, когда hero ушёл вверх за экр
+          ан,
+      10  // и прячется, пока форма заявки в зоне видимости (ТЗ, раздел 4
+          ).
+     ...
+      52              {mobileBar.price}
+      53            </span>
+      54          </p>
+      54 -        <ButtonLink href={ORDER_HREF} size="lg">               
+      55 +        <ButtonLink href={ORDER_HREF} size="lg" {...prefillAttr
+         +s(mobileBar)}>                                                 
+      56            {mobileBar.cta}
+      57          </ButtonLink>
+      58        </div>
+  ⎿  Updated components/sections/Catalog.tsx (+5 -0)
+      3  import { Label, type LabelTone } from "@/components/ui/Label";
+      4  import { ShortFull } from "@/components/ui/ShortFull";
+      5  import { coffee, CURRENCY, ORDER_HREF } from "@/lib/content";
+      6 +import { prefillAttrs } from "@/lib/prefill";                   
+      7  
+      8  // Цвет метки и фон этикетки по порядку карточек, как в макете
+      9  const LABEL_STYLES: { tag: LabelTone; card: CardTone }[] = [
+     ...
+      70                  </p>
+      71                  <ButtonLink
+      72                    href={ORDER_HREF}
+      73 +                  {...prefillAttrs({                           
+      74 +                    interest: "order",                         
+      75 +                    comment: item.orderComment,                
+      76 +                  })}                                          
+      77                    variant="dark"
+      78                    size="sm"
+      79                    className="shrink-0"
+  ⎿  Updated components/sections/Hero.tsx (+8 -2)
+       5  import { ShortFull } from "@/components/ui/ShortFull";
+       6  import { cn } from "@/lib/cn";
+       7  import { hero, ORDER_HREF } from "@/lib/content";
+       8 +import { prefillAttrs } from "@/lib/prefill";                  
+       9  
+      10  // Две колонки с lg: фото 460 px в контейнере 1280, иначе ~35vw
+          ; на md – до 448 px
+      11  const PHOTO_SIZES =
+     ...
+      42          </p>
+      43  
+      44          <div className="mt-7 flex flex-col gap-4 md:flex-row md
+          :flex-wrap lg:mt-8">
+      44 -          <ButtonLink href={ORDER_HREF} size="lg">             
+      45 +          <ButtonLink href={ORDER_HREF} size="lg" {...prefillAt
+         +trs(primary)}>                                                 
+      46              {primary.label}
+      47            </ButtonLink>
+      47 -          <ButtonLink href={ORDER_HREF} size="lg" variant="outl
+         -ine">                                                          
+      48 +          <ButtonLink                                          
+      49 +            href={ORDER_HREF}                                  
+      50 +            size="lg"                                          
+      51 +            variant="outline"                                  
+      52 +            {...prefillAttrs(secondary)}                       
+      53 +          >                                                    
+      54              {secondary.label}
+      55            </ButtonLink>
+      56          </div>
+  ⎿  Updated components/sections/Order.tsx (+0 -7)
+      1  import { LeadForm } from "@/components/lead-form/LeadForm";
+      2  import { Card } from "@/components/ui/Card";
+      3  import { Photo } from "@/components/ui/Photo";
+      4 -import { ShortFull } from "@/components/ui/ShortFull";          
+      4  import { LEAD_FORM_ID, order } from "@/lib/content";
+      5  
+      6  // Левая колонка с lg: 538 px в контейнере 1280, иначе ~43vw
+     ...
+      24          shadow="lg"
+      25          className="mt-6 mr-2.5 p-5 lg:col-start-2 lg:row-span-2
+           lg:row-start-1 lg:mt-0 lg:mr-3 lg:self-start lg:p-9"
+      26        >
+      28 -<<<<<<< HEAD                                                   
+      29 -        <p className="text-sm text-brown">                     
+      30 -          <ShortFull text={order.form.note} />                 
+      31 -        </p>                                                   
+      32 -=======                                                        
+      27          <LeadForm />
+      34 ->>>>>>> 9f44fa5 (feat(form): add lead form with states to the o
+         -rder section)                                                  
+      28        </Card>
+      29  
+      30        <div className="mt-8 lg:mt-9">
+  ⎿  … 1 more file changed
+
+⏺ Все пять коммитов проходят lint и typecheck, итоговое дерево не изменилось.
+  Пушу и открываю PR.
+
+  Created PR #12 (ctrl+o to expand)
+
+⏺ Шаг 8 готов, PR #12: https://github.com/ahahaharu/kvarta-landing/pull/12.
+  Lint, typecheck и все 172 теста зелёные, сборка проходит, страница по-прежнему
+  ○ (static). На 390 и 1440 px форма совпадает с макетом.
+
+  Что сделано
+  - Форма в #order:
+    - ошибки появляются на blur и при отправке, при отправке фокус уходит на
+      первое неверное поле;
+    - номер мягко форматируется на blur;
+    - имя и телефон сохраняются в sessionStorage и переживают перезагрузку;
+    - отдельные состояния для отправки, успеха, дубля, ошибки сети, ошибки
+      сервера и 429;
+    - «Повторить» отправляет тот же ключ, двойной клик даёт один запрос;
+    - в карточке успеха написано, когда ждать звонка, по времени Минска.
+  - Предзаполнение из CTA: кнопки остались серверными ссылками с
+    data-атрибутами, форма ловит клики сама. Свой текст человека в комментарии
+    не стирается.
+  - Атрибуция: UTM-метки и click id хранятся 30 дней. Если хранилище недоступно,
+    метки берутся из текущего URL. Все 3 метки из тестовой ссылки дошли в тело
+    запроса.
+  - JS формы и мобильной плашки занимает около 5 КБ gzip при бюджете 15 КБ.
+
+  Как проверял: прогнал сценарии в браузере скриптом Playwright –
+  предзаполнение, ошибки, обрыв сети, ответ 500, двойной клик, UTM. Так нашёл
+  свой баг: кнопка подписки не очищала комментарий, который подставила карточка
+  сорта. Исправил, история бага описана в PR.
+
+  Что пока не работает или отличается от ТЗ
+  - /privacy пока отдаёт 404, страница появится на шаге 11. E2E-тесты будут на
+    шаге 9.
+  - Кнопка называется «Отправить заявку», как в макете, а не «Оставить заявку»,
+    как в ТЗ.
+  - Текста для заявки в рабочее время в ТЗ не было, сейчас стоит «Перезвоним
+    сегодня до 20:00».
+
+  Скриншоты для PR лежат в .shots/: order-390.png, form-error-390.png,
+  form-success-390.png. Их нужно вставить вручную.
+
+  Отдельно открыт PR #11 – чистка упоминаний /cost и расхода токенов. По ритму
+  из docs/SETUP.md перед слиянием шага 8 нужен агент code-reviewer. Запустить
+  его?
+
+✻ Cooked for 22m 12s · done Friday 2:05 PM
+
+❯ да, запусти агентов                                                           
+
+⏺ 2 background agents launched (↓ to manage)
+   ├ code-reviewer (Review lead form branch)
+   └ design-qa (Design QA for order section)
+
+⏺ Запустил оба агента параллельно:
+  - code-reviewer проверяет ветку feat/lead-form относительно main. Особое
+    внимание: гонки состояний формы, совместимость запроса со схемой сервера,
+    гидратация статической страницы, доступность, не попал ли zod в клиентский
+    бандл.
+  - design-qa сверяет секцию #order с макетом на 390 и 1440 px и смотрит снимки
+    состояний ошибки и успеха.
+
+  Когда они закончат, перепроверю их находки по коду. Подтвердившиеся исправлю
+  отдельными коммитами в ту же ветку, ложные запишу в NOTES.md.
+
+✻ Brewed for 1m 2s · done Friday 2:20 PM
+
+› Message from a919b5f6e0436c7a5
+  Серьёзных проблем не нашёл. `pnpm lint`, `pnpm typecheck`, `pnpm test`
+  (172/172) и `pnpm build` зелёные, страница `/` статическая (○), zod и схема не
+  попадают в клиентский бандл (`lib/attribution.ts`, `lib/lead/form.ts`,
+  `lib/prefill.ts`, `lib/lead/submit.ts` без React/zod-импортов), только
+  `LeadForm`/`MobileBar` – `"use client"`.
+
+  Замечания (от важного к мелкому):
+
+  1. [важно] `components/lead-form/LeadForm.tsx:206-206,313-313` – при
+  `rate_limited` кнопка остаётся активной и показывает «Отправить заявку» (не
+  «Повторить»), т.е. ничего не мешает тут же отправить ещё один запрос и
+  получить новый 429 – для согласованности с остальными error-состояниями стоит
+  либо показать «Повторить», либо явно задержать повторную отправку (решение не
+  критично, т.к. сервер всё равно режет лимитом, но расходится с паттерном
+  «Повторить» из раздела 5 ТЗ).
+  2. [важно] Нет ни unit (RTL), ни e2e теста, который реально монтирует
+  `LeadForm` и проверяет переходы состояний (idle→submitting→done/error, фокус
+  на заголовок success-карточки, `role=alert/status`, игнорирование второго
+  клика через `inFlight`, повтор с тем же `idempotencyKey`, очистка черновика на
+  success) – сейчас покрыты только чистые функции (`form.ts`, `submit.ts`,
+  `callback.ts`, `prefill.ts`). Раз e2e по плану в шаге 9, это ожидаемо, но до
+  него поведение самого компонента никем не проверяется – стоит явно отметить в
+  NOTES.md/PR, что это осознанный пробел до step 9, а не забытый тест.
+  3. [мелочь] `lib/lead/schema.ts` и `lib/lead/submit.ts` (клиент) при
+  `validation`-исходе не сбрасывают `idempotencyKey.current` – если сервер
+  однажды отвергнет уже провалидированные на клиенте данные (например, из-за
+  рассинхрона правил), повтор после правки полей уйдёт с тем же ключом; если
+  сервер идемпотентно кеширует по ключу независимо от результата, повтор может
+  вернуть старый ответ вместо новой попытки. Сценарий редкий (клиентская и
+  серверная валидация совпадают), но стоит явно задокументировать поведение
+  дедупликации на сервере по ключу при невалидных заявках.
+  4. [мелочь] `lib/lead/callback.ts:77-79` – ветка `"в ближайший рабочий день"`
+  в `callbackAfter` сейчас недостижима, т.к. в `business.hours`
+  (`lib/content.ts`) заняты все 7 дней недели; мёртвый код, не ошибка, но можно
+  убрать или оставить с комментарием «на случай праздников».
+  5. [мелочь] `components/lead-form/LeadForm.tsx:116-132` – `handleBlur`
+  переформатирует телефон (`setValues`) и валидирует его локальной переменной
+  `value`, при этом `errors[field]` обновляется раньше, чем применится
+  `setValues`; расхождения на практике нет (повторная нормализация даёт тот же
+  результат), но порядок неочевиден при будущих правках – стоит явно
+  прокомментировать, что `value` используется именно как «источник истины» для
+  валидации, а не состояние.
+
+  Файлы, которые читал: `components/lead-form/LeadForm.tsx`,
+  `components/lead-form/Field.tsx`, `components/lead-form/FormStatus.tsx`,
+  `components/lead-form/InterestChips.tsx`, `lib/attribution.ts`,
+  `lib/lead/form.ts`, `lib/lead/rules.ts`, `lib/lead/schema.ts`,
+  `lib/lead/submit.ts`, `lib/lead/callback.ts`, `lib/prefill.ts`,
+  `lib/content.ts` (diff),
+  `components/sections/{Hero,Catalog,Subscription,Order}.tsx`,
+  `components/MobileBar.tsx`,
+  `tests/unit/{lead-form,lead-submit,attribution}.test.ts`, `docs/SPEC.md`
+  (разделы 5, 8, 9, 10, 12).
+
+⏺ code-reviewer закончил: серьёзных проблем нет. Lint, typecheck, все 172 теста
+  и сборка у него тоже зелёные, zod в клиентский бандл не попал. Я проверил его
+  5 замечаний по коду, менять ничего не нужно:
+
+  1. При 429 кнопка остаётся «Отправить заявку», а не «Повторить». Так и
+     задумано: сразу повторять после лимита бессмысленно, поэтому человеку
+     показываем текст про лимит и ссылку на Instagram.
+  2. Нет тестов, которые монтируют сам компонент формы. Это известный пробел до
+     шага 9 (e2e), в PR он отмечен. Сценарии формы я прогнал скриптом Playwright
+     вручную, но в репозиторий этот скрипт не попал.
+  3. Тот же idempotencyKey после ошибки валидации. Не баг: при ответе 400 сервер
+     ничего не записывает, ключ привязан только к реально созданной заявке.
+  4. Недостижимая ветка «в ближайший рабочий день». Она нужна на случай, если в
+     часах работы появится выходной без приёма звонков. Unit-тест её покрывает.
+  5. Порядок обновления состояния в handleBlur. Расхождения нет, рецензент
+     предлагает только добавить комментарий – не стал.
+
+  design-qa ещё работает. Когда он закончит, разберу его находки.
+
+✻ Worked for 37s · done Friday 2:24 PM
+
+⏺ Agent "Review lead form branch" finished · 3m 55s
+
+⏺ Отчёт code-reviewer я уже разобрал выше. design-qa ещё работает, его находки
+  разберу, когда он закончит.
+✻ Brewed for 48s · done Friday 2:25 PM
+
+› Message from a39d86ec00bdd24f4
+  Сверка секции `order` (ветка feat/lead-form) с
+  `design/screens/mobile-07-order.png` / `desktop-07-order.png`, значения — из
+  `design/tokens.md`, тексты — из `design/content.md`.
+
+  Известные намеренные отличия (кнопка «Отправить заявку», строка согласия на
+  обработку ПД, полный плейсхолдер комментария, brown-цвет подсказок) не репортю
+  — это подтверждено сверкой, они на месте и совпадают с тем, что указано как
+  разрешённое.
+
+  Расхождения по важности:
+
+  1. [заметно] 390 и 1440 — адрес «Минск, ул. Короля, 9» в блоке «Самовывоз»
+  отрендерен как подчёркнутая ссылка на карту (hover/visited-подчёркивание,
+  `underline decoration-2`), в макете на обоих брейкпоинтах это обычный текст
+  без подчёркивания и без визуальных признаков ссылки (проверил кропами
+  `design/screens/mobile-07-order.png` и `desktop-07-order.png` — других строк
+  dl, «Доставка»/«Часы», это не касается, только «Самовывоз»).
+     - Где править: `components/sections/Order.tsx`, блок `<dl>` (строки
+  ~44–60), ветка `"href" in item ? <a className="underline decoration-2 ...">`.
+     - Источник href: `lib/content.ts`, `order.info` → запись `{ title:
+  "Самовывоз", lines: [business.address], href: business.mapUrl }` (~строка
+  255).
+     - Как по макету: обычный `<dd>` без ссылки/подчёркивания (как «Доставка» и
+  «Часы»), либо убрать подчёркивание визуально, если ссылка нужна функционально.
+
+  2. [мелочь] 390 и 1440 — рамка полей ввода (`Field.tsx`, `controlClasses`) и
+  чипов «Что интересует» (`InterestChips.tsx`) — `border-2` (2px), тогда как
+  `tokens.md` в разделе «Форма» задаёт «Рамка 3 px ink» (это же значение
+  корректно применено к карточке формы и кнопкам через `border-3` в `Card.tsx` /
+  `Button.tsx`). Визуально на скринах разница тонкая, но по токенам должно быть
+  3px.
+     - Где: `components/lead-form/Field.tsx` (константа `controlClasses`,
+  `border-2` → `border-ink`), `components/lead-form/InterestChips.tsx`
+  (`className="... border-2 border-ink ..."`).
+     - Ожидаемое: `border-3` (как у Card/Button), фактическое: `border-2`.
+
+  3. [мелочь] 390 и 1440 — перенос строк в H2 «Оставьте заявку – мы перезвоним»
+  отличается от макета:
+     - макет 390: «ОСТАВЬТЕ ЗАЯВКУ –» / «МЫ ПЕРЕЗВОНИМ»; факт: «ОСТАВЬТЕ ЗАЯВКУ»
+  / «– МЫ ПЕРЕЗВОНИМ».
+     - макет 1440: «ОСТАВЬТЕ ЗАЯВКУ» / «– МЫ» / «ПЕРЕЗВОНИМ»; факт: «ОСТАВЬТЕ» /
+  «ЗАЯВКУ – МЫ» / «ПЕРЕЗВОНИМ».
+     - Кегль корректный (`type-h2`: 2.5rem/40px моб. → 4rem/64px деск. в
+  `app/globals.css`, совпадает с токеном 40–44/64 px), ширина левой колонки по
+  расчёту тоже близка к макету (~512px на 1440 при `grid-cols-[5fr_6fr]`).
+  Разница переноса, скорее всего, из-за ширины символов шрифта/letter-spacing,
+  не критично, можно не трогать.
+
+  Остальное по секции совпадает: порядок блоков (H2 → карточка формы →
+  фото+инфо), двухколоночная раскладка на 1440, поля формы (Имя/Телефон/Что
+  интересует/Комментарий), жёсткая тень карточки формы на обоих брейкпоинтах (на
+  390 в макете тень визуально не видна, но это соответствует явному указанию в
+  `tokens.md` использовать размеры из токена, а не «на глаз» по картинке — не
+  репортю как баг), кроп и alt фото мастерской, тексты инфо-блока
+  «Доставка/Самовывоз/Часы», placeholder/label полей, цвета кнопок чипов (чёрный
+  активный / белый неактивный).
+
+  Состояния формы (`.shots/form-invalid-390.png`, `form-error-390.png`,
+  `form-success-390.png`) стилистически соответствуют системе: прямые углы, нет
+  градиентов и мягких теней, инвалидная рамка — orange, блок ошибки/успеха — с
+  жёсткой тенью и ink-рамкой, контраст текста достаточный. Замечаний нет (жёлтая
+  плашка «Cache disabled» на скринах — наложение дев-инструмента/расширения
+  браузера, не часть вёрстки).
+
+  Файлы, которые смотрел: `components/sections/Order.tsx`,
+  `components/lead-form/Field.tsx`, `components/lead-form/InterestChips.tsx`,
+  `components/ui/Card.tsx`, `lib/content.ts` (объект `order`), `app/globals.css`
+  (`type-h2`), `design/tokens.md`, `design/content.md`, `design/README.md`.
+
+
+⏺ Проверяю второе замечание по пикселям макета: толщину рамки поля и рамки
+  карточки.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Agent "Design QA for order section" finished · 5m 37s
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Макет подтверждает: у карточки и кнопки рамка 3 px, у полей ввода 2 px — и на
+  десктопе, и на мобильной версии, так что замечание design-qa про 3 px неверно.
+  Зафиксирую это в NOTES.md.
+
+⏺ Bash(python3 - <<'EOF'
+      p='NOTES.md'…)
+  ⎿   NOTES.md | 1 +
+      1 file changed, 1 insertion(+)
+     0c1d523 docs(notes): record the false 3 px border design-qa finding
+  ⎿  Updated NOTES.md (+1 -0)
+      10  | 2      | Не видя логов, предположил, что превью Vercel падает
+           из-за `DATABASE_URL` только в Production                      
+                                                                         
+          | Принёс логи сборки: конфиг читается, падает `applying migrati
+          ons`                | Воспроизвели локально: нет `db/migrations
+          /meta/_journal.json`, drizzle-kit глотает текст ошибки. Добавил
+          и пустой журнал                                            |
+      11  | 7      | Тесты «10 параллельных запросов → 1 строка» и лимита
+           по IP проходили и без advisory lock: пул открывает подключения
+           лениво, запросы шли по одному, а лимит (5) равен размеру пула 
+          | Мутационная проверка: убрали блокировки из `service.ts`, тест
+          ы остались зелёными | `warmPool()` перед параллельными тестами,
+           запросы с одним номером – с разных IP, флуд – 3 заявки + 5 пар
+          аллельно. Теперь без каждой из блокировок падает свой тест |
+      12  | 7      | Агент code-reviewer пометил как критичное: «Vercel д
+          описывает IP в конец x-forwarded-for, первый адрес подделываетс
+          я – лимит по IP обходится»                                     
+          | Сверили с документацией Vercel                               
+                              | Утверждение неверно: Vercel перезаписывае
+          т заголовок, чтобы исключить подмену IP. Код не меняли, в `getC
+          lientIp` добавили ссылку на документацию                   |
+      13 +| 8      | Агент design-qa: рамка полей и чипов должна быть 3 p
+         +x («Рамка 3 px ink» в `tokens.md`), а в вёрстке 2 px           
+         +                                                               
+         +| Замерили пиксели макета: карточка и кнопка – 3 px, поля – 2 p
+         +x, на 390 и 1440    | Не меняли: строка в токенах про рамку кар
+         +точек, вёрстка совпадает с макетом                             
+         +                                                           |   
+      14  
+      15  ## Решения по ходу
+      16  
+  ⎿  PostToolUse:Bash says: Tip: Run /ultrareview before you push to catch bugs 
+     with a cloud-based multi-agent review.
+
+⏺ Оба агента закончили. Их находки я перепроверил, код менять не пришлось.
+
+  code-reviewer: серьёзных проблем нет. Пять мелких замечаний я разобрал выше:
+  где-то поведение задумано так, где-то пробел закроет шаг 9 (e2e).
+
+  design-qa: остальная секция совпадает с макетом, по состояниям ошибки и успеха
+  замечаний нет. Три расхождения:
+  1. Адрес «Минск, ул. Короля, 9» подчёркнут, как ссылка. Это не из шага 8:
+     адрес ведёт на Яндекс.Карты с шага 5 (PR #7), так задумано. Если хотите,
+     чтобы он выглядел как в макете, обычным текстом, – уберу подчёркивание или
+     ссылку.
+  2. «Рамка полей должна быть 3 px». Неверно. Я замерил пиксели макета: у
+     карточки и кнопки рамка 3 px, у полей 2 px, на обоих брейкпоинтах. Наша
+     вёрстка совпадает с макетом. Записал этот случай в NOTES.md и запушил в PR
+     #12.
+  3. Перенос строк в заголовке. У нас «ЗАЯВКУ / – МЫ», в макете «ЗАЯВКУ – / МЫ».
+     Причина в метриках шрифта, а не в кегле. Не трогал: тире в начале строки
+     при переносе такого заголовка – нормальная типографика.
+
+  Оба PR готовы к слиянию: #11 (чистка /cost) и #12 (форма).
+
+✻ Baked for 8m 54s · done Friday 2:28 PM
+
+⏺ Unknown command: /uesage. Did you mean /usage?
+
+❯ а ты форму делал через server actions или как? просто не вижу action в форме  
+
+⏺ Нет, server actions я не использовал. Форма отправляет fetch на Route Handler
+  POST /api/lead, который сделали на шаге 7. Обработчик висит на onSubmit в
+  components/lead-form/LeadForm.tsx, запрос собирает lib/lead/submit.ts, поэтому
+  атрибута action у формы нет.
+
+  Почему не server action. Раздел 6 ТЗ закладывает отдельный эндпоинт, и у fetch
+  здесь практические плюсы:
+  - Коды ответа. Форма различает 201, 200 (дубль), 400 с ошибками полей, 429,
+    500 и обрыв сети. Server action возвращает объект, а сетевую ошибку от
+    серверной в нём не отличить.
+  - Таймаут 10 с и «Повторить» с тем же ключом. Через AbortController это
+    управляется явно. У server action нет штатной отмены запроса по таймауту.
+  - Защита из шага 7 – проверка Origin, лимит тела 10 КБ, только JSON. Она
+    написана под обычный HTTP-запрос и покрыта integration-тестами, которые
+    вызывают POST из route.ts напрямую.
+  - Страница остаётся статической (○). С server action она тоже осталась бы
+    статической, так что это не довод ни за, ни против.
+
+  Главный плюс server action – форма работала бы без JS. Здесь вы, по-моему,
+  поймали реальную дыру. Если нажать «Отправить» до гидрации (медленный 3G) или
+  с выключенным JS, браузер сделает обычную отправку. Метода и адреса у формы
+  нет, поэтому это будет GET на текущую страницу: /?name=Анна&phone=%2B375....
+  Номер попадёт в адресную строку, историю браузера и логи Vercel. Сама заявка
+  при этом не уйдёт. Я этот путь не проверял, а оба агента его тоже не заметили.
+
+  Варианты исправления:
+  1. method="post" на форме (рекомендую). Данные больше никогда не попадут в
+     URL. Без JS заявка всё равно не отправится, но после гидрации всё работает
+     как сейчас. Это одна строка, плюс запись в NOTES.md.
+  2. Кнопка заблокирована до гидрации. На медленной сети человек видит
+     неактивную кнопку и не понимает почему.
+  3. Переход на server action ради работы без JS. Пришлось бы переписать защиту
+     и тесты шага 7 – слишком дорого для лендинга, где JS есть почти у всех.
+
+  Сделать первый вариант в PR #12?
+
+✻ Sautéed for 38s · done Friday 2:29 PM
+
+❯ то есть по сути переход на server actions просто протеворечит тз? приведи за  
+  и против и сделай вывод, можешь просто по другому пересмотреть изначальный    
+  план и переделать                                                             
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ ТЗ прямо указывает на Route Handler POST /api/lead и форму на useState +
+  fetch, без Server Action. Сейчас проверю, как поведёт себя method="post" без
+  JS.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Дыра подтвердилась: без JS номер уходит в URL. Пробую method="post":
+
+⏺ Bash(grep -n "noValidate" components/lead-form/LeadForm.tsx && sed -i '' 's/^
+          noValidate$/      method="post"\n      noValidate/'
+      components/lead-form/LeadForm.…)
+  ⎿  224:      noValidate
+     224:      method="post"
+     225-      noValidate
+     … +4 lines (ctrl+o to expand)
+  ⎿  Updated components/lead-form/LeadForm.tsx (+1 -0)
+      221  
+      222    return (
+      223      <form
+      224 +      method="post"                                           
+      225        noValidate
+      226        className="relative flex flex-col gap-6"
+      227        onSubmit={(event) => {
+
+⏺ В dev-режиме после POST возвращается та же страница с чистым URL. Теперь
+  проверю прод-сборку — там страница статическая, и поведение при POST может
+  отличаться.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Продакшен-сборка также возвращает 200 с чистым URL, страница осталась
+  статической. Коммичу изменения и фиксирую в NOTES.md, что уязвимость заметили
+  вы, а не я или агенты.
+
+⏺ Bash(python3 - <<'EOF'
+      p='NOTES.md'…)
+  ⎿  ea8c8ba docs(notes): record the GET form leak and the server action de
+     cision
+     24a356c fix(form): post the form so a pre-hydration submit keeps the p
+     hone out of the URL
+  ⎿  Updated NOTES.md (+9 -7)
+       4  
+       5  ## Где ИИ ошибся
+       6  
+       7 -| Шаг    | Что сделал ИИ                                       
+         -                                                               
+         -                                                               
+         -| Как заметил                                                  
+         -                    | Как исправили                            
+         -                                                               
+         -                                                           |   
+       8 -| ------ | ----------------------------------------------------
+         ----------------------------------------------------------------
+         --------------------------------------------------------------- 
+         -| -------------------------------------------------------------
+         -------------------- | -----------------------------------------
+         ----------------------------------------------------------------
+         ----------------------------------------------------------- |   
+       9 -| Дизайн | Варианты B и C не отражали продукт (кофе)           
+         -                                                               
+         -                                                               
+         -| Сам, при просмотре                                           
+         -                    | Отказался, взял A и доработал с реальными
+         - фото                                                          
+         -                                                           |   
+      10 -| 2      | Не видя логов, предположил, что превью Vercel падает
+         - из-за `DATABASE_URL` только в Production                      
+         -                                                               
+         -| Принёс логи сборки: конфиг читается, падает `applying migrati
+         -ons`                | Воспроизвели локально: нет `db/migrations
+         -/meta/_journal.json`, drizzle-kit глотает текст ошибки. Добавил
+         -и пустой журнал                                            |   
+      11 -| 7      | Тесты «10 параллельных запросов → 1 строка» и лимита
+         - по IP проходили и без advisory lock: пул открывает подключения
+         - лениво, запросы шли по одному, а лимит (5) равен размеру пула 
+         -| Мутационная проверка: убрали блокировки из `service.ts`, тест
+         -ы остались зелёными | `warmPool()` перед параллельными тестами,
+         - запросы с одним номером – с разных IP, флуд – 3 заявки + 5 пар
+         -аллельно. Теперь без каждой из блокировок падает свой тест |   
+      12 -| 7      | Агент code-reviewer пометил как критичное: «Vercel д
+         -описывает IP в конец x-forwarded-for, первый адрес подделываетс
+         -я – лимит по IP обходится»                                     
+         -| Сверили с документацией Vercel                               
+         -                    | Утверждение неверно: Vercel перезаписывае
+         -т заголовок, чтобы исключить подмену IP. Код не меняли, в `getC
+         -lientIp` добавили ссылку на документацию                   |   
+      13 -| 8      | Агент design-qa: рамка полей и чипов должна быть 3 p
+         -x («Рамка 3 px ink» в `tokens.md`), а в вёрстке 2 px           
+         -                                                               
+         -| Замерили пиксели макета: карточка и кнопка – 3 px, поля – 2 p
+         -x, на 390 и 1440    | Не меняли: строка в токенах про рамку кар
+         -точек, вёрстка совпадает с макетом                             
+         -                                                           |   
+       7 +| Шаг    | Что сделал ИИ                                       
+         +                                                               
+         +                                                               
+         +   | Как заметил                                               
+         +                       | Как исправили                         
+         +                                                               
+         +                                                              |
+       8 +| ------ | ----------------------------------------------------
+         +---------------------------------------------------------------
+         +---------------------------------------------------------------
+         +-- | ----------------------------------------------------------
+         +---------------------- | --------------------------------------
+         +---------------------------------------------------------------
+         +------------------------------------------------------------- |
+       9 +| Дизайн | Варианты B и C не отражали продукт (кофе)           
+         +                                                               
+         +                                                               
+         +   | Сам, при просмотре                                        
+         +                       | Отказался, взял A и доработал с реальн
+         +ыми фото                                                       
+         +                                                              |
+      10 +| 2      | Не видя логов, предположил, что превью Vercel падает
+         + из-за `DATABASE_URL` только в Production                      
+         +                                                               
+         +   | Принёс логи сборки: конфиг читается, падает `applying migr
+         +ations`                | Воспроизвели локально: нет `db/migrati
+         +ons/meta/_journal.json`, drizzle-kit глотает текст ошибки. Доба
+         +вили пустой журнал                                            |
+      11 +| 7      | Тесты «10 параллельных запросов → 1 строка» и лимита
+         + по IP проходили и без advisory lock: пул открывает подключения
+         + лениво, запросы шли по одному, а лимит (5) равен размеру пула 
+         +   | Мутационная проверка: убрали блокировки из `service.ts`, т
+         +есты остались зелёными | `warmPool()` перед параллельными теста
+         +ми, запросы с одним номером – с разных IP, флуд – 3 заявки + 5 
+         +параллельно. Теперь без каждой из блокировок падает свой тест |
+      12 +| 7      | Агент code-reviewer пометил как критичное: «Vercel д
+         +описывает IP в конец x-forwarded-for, первый адрес подделываетс
+         +я – лимит по IP обходится»                                     
+         +   | Сверили с документацией Vercel                            
+         +                       | Утверждение неверно: Vercel перезаписы
+         +вает заголовок, чтобы исключить подмену IP. Код не меняли, в `g
+         +etClientIp` добавили ссылку на документацию                   |
+      13 +| 8      | Агент design-qa: рамка полей и чипов должна быть 3 p
+         +x («Рамка 3 px ink» в `tokens.md`), а в вёрстке 2 px           
+         +                                                               
+         +   | Замерили пиксели макета: карточка и кнопка – 3 px, поля – 
+         +2 px, на 390 и 1440    | Не меняли: строка в токенах про рамку 
+         +карточек, вёрстка совпадает с макетом                          
+         +                                                              |
+      14 +| 8      | Форма без `method`: при нажатии до гидрации или без 
+         +JS браузер делал GET на `/?name=…&phone=…` – номер в адресной с
+         +троке, истории и логах. Ни ИИ, ни code-reviewer этого не замети
+         +ли | Пользователь спросил, почему у формы нет `action`         
+         +                       | `method="post"`: данные не попадают в 
+         +URL; проверили Playwright с выключенным JS на dev и прод-сборке
+         +                                                              |
+      15  
+      16  ## Решения по ходу
+      17  
+      18  - Шаг 6: zod только на сервере (`lib/lead/schema.ts`), форма пр
+          оверяет поля через `lib/lead/rules.ts` без zod. Замер esbuild: 
+          полный zod ~25 КБ gzip, даже `zod/mini` со схемой ~10 КБ – почт
+          и весь бюджет клиентского JS (15 КБ); `rules.ts` – 0,3 КБ. Атри
+          буция не валит заявку: кривые поля → `null`, длинные обрезаются
+           до 500 символов.
+      19  - Шаг 7: в одной транзакции блокировки по IP, потом по номеру (
+          порядок фиксирован – без взаимных блокировок). Сначала дубль, п
+          отом лимит: повтор той же заявки получает 200, а не 429. Один `
+          idempotencyKey` с разными номерами ловит `ON CONFLICT DO NOTHIN
+          G`. `startedAt` в будущем (часы телефона спешат) ботом не счита
+          ем. Без `IP_HASH_SALT` в production – 500: IPv4 без соли восста
+          навливается перебором. Запрос без `Origin` – 403. В лог из ошиб
+          ки postgres.js берём только `code` и `message`: в `parameters` 
+          лежит номер.
+      20  - Шаг 8: CTA – серверные ссылки на `#order` с `data-interest`/`
+          data-comment`, форма ловит клики делегированием на `document`. 
+          Клиентских CTA-компонентов нет, без JS ссылка просто прокручива
+          ет к форме. Комментарий из CTA заменяет только пустое поле или 
+          текст прошлого CTA. Ошибку на blur не показываем, если пустое п
+          оле просто проскочили табом. Кнопка во время отправки `disabled
+          `, второй запрос дополнительно режет `inFlight`. LeadForm + Mob
+          ileBar с `content.ts` – ~5 КБ gzip (esbuild).
+      21 +- Шаг 8: Server Action вместо `fetch` не берём – исходное задан
+         +ие называет `POST /api/lead` (ТЗ, раздел 2). Плюс Server Action
+         + – работа без JS – для аудитории из Instagram почти ничего не д
+         +аёт, а таймаут, «Повторить» и коды 429/413/415 через `fetch` пр
+         +още и уже покрыты тестами шага 7.                              
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Да, противоречит. В разделе 2 ТЗ записано: «Route Handler… ТЗ прямо называет
+  POST /api/lead… Server Action не берём» и «форма на useState + fetch». Главное
+  здесь – что эндпоинт назван в задании работодателя, это не наш выбор. Но даже
+  без этого я бы не переделывал.
+
+  За Server Action
+  - Форма работает без JS и до гидрации. Это единственный реальный плюс.
+  - Проверка Origin встроена во фреймворк.
+  - Меньше клиентского кода, не нужен отдельный модуль запроса.
+
+  Против
+  - ТЗ требует POST /api/lead. С Server Action такого адреса просто не будет.
+  - Таймаут 10 с. Server Action нельзя отменить. Ошибку по таймеру показать
+    можно, но сам запрос продолжит идти.
+  - Состояния ошибок. Обрыв сети и ошибка сервера различимы только если вызывать
+    action вручную в try/catch. Но тогда пропадает работа без JS, ради которой
+    его и берут.
+  - Коды ответа. 429, 413 и 415 с проверкой тела 10 КБ превращаются в поля
+    объекта, а лимит тела у Server Action по умолчанию – 1 МБ.
+  - Переделка шага 7. Integration-тесты вызывают POST из route.ts напрямую, их
+    пришлось бы переписать и мокать next/headers.
+  - Польза для этой аудитории мала. Люди приходят из Instagram, JS у них есть.
+    Форма внизу страницы, и к моменту, когда до неё долистают, страница давно
+    гидрирована.
+
+  Вывод: оставляем Route Handler и fetch. План не меняю.
+
+  Что поправил в PR #12. Ваш вопрос нашёл реальный баг, который пропустили и я,
+  и code-reviewer. Без JS форма уходила GET-ом на
+  /?name=Анна&phone=%2B375291234567 – номер попадал в адресную строку, историю и
+  логи. Воспроизвёл это в Playwright с выключенным JS.
+  - Добавил форме method="post". Проверил на dev и на прод-сборке: URL чистый,
+    POST на / возвращает 200, страница осталась ○ (static).
+  - Без JS заявка по-прежнему не отправится, просто перезагрузится страница. Это
+    осознанный компромисс.
+  - Записал баг и решение про Server Action в NOTES.md, обновил описание PR.
+
+  Можно добавить <noscript> с подсказкой «включите JavaScript или напишите в
+  Instagram» – это одна строка, если хотите.
+
+✻ Baked for 4m 11s · done Friday 2:36 PM
